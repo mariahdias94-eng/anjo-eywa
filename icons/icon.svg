@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="#0E6A86"/><stop offset=".6" stop-color="#023F56"/><stop offset="1" stop-color="#012C3D"/></radialGradient>
+ <radialGradient id="aG" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#FFF6DD"/><stop offset=".5" stop-color="#F0C97A"/><stop offset="1" stop-color="#D6A558"/></radialGradient>
+ <radialGradient id="aGlow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F6D998" stop-opacity=".6"/><stop offset="1" stop-color="#D6A558" stop-opacity="0"/></radialGradient>
+ <linearGradient id="aW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBE7B8"/><stop offset="1" stop-color="#D6A558" stop-opacity=".6"/></linearGradient>
+</defs>
+<rect width="100" height="100" rx="22" fill="url(#bg)"/>
+<g transform="translate(10 8) scale(.8)">
+ <circle cx="50" cy="52" r="44" fill="url(#aGlow)"/>
+ <path d="M47 44 C34 26 14 26 8 40 C16 40 22 44 26 50 C18 50 14 56 14 60 C26 58 36 56 46 54Z" fill="url(#aW)"/>
+ <path d="M53 44 C66 26 86 26 92 40 C84 40 78 44 74 50 C82 50 86 56 86 60 C74 58 64 56 54 54Z" fill="url(#aW)"/>
+ <path d="M50 38 C43 44 40 62 37 80 C45 84 55 84 63 80 C60 62 57 44 50 38Z" fill="url(#aG)"/>
+ <circle cx="50" cy="31" r="8.5" fill="url(#aG)"/>
+ <ellipse cx="50" cy="18" rx="10" ry="3" fill="none" stroke="#E9C27F" stroke-width="2.2"/>
+</g>
+</svg>

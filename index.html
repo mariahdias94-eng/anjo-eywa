@@ -1,0 +1,1490 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>ANJO EYWA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="ANJO: pausas, check-in e Raio-X de bem-estar para cuidar do corpo, da mente e da natureza.">
+<meta name="theme-color" content="#023F56">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ANJO">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
+<style>
+/* Layout: o app num celular, ao lado de um console de demonstração (simular o dia, widget, painel EYWA). Empilha no celular. */
+:root{
+  /* Paleta da prancha do ANJO: dourado luz, creme, verde oliva, verde floresta, azul petróleo */
+  /* fundo: branco com toque esmeralda e brilho */
+  --page:#E8F6EF; --surface:#F7FDFA; --card:#F6E9CF; --card-2:#EEDDB8; --card-3:#E4CB97;
+  --ink:#16302A; --muted:#4F6A61; --line:rgba(22,90,70,.13);
+  --sheen-page:radial-gradient(70% 55% at 15% 0%,rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 60%),radial-gradient(60% 50% at 100% 100%,rgba(46,175,125,.28) 0%,rgba(46,175,125,0) 70%),linear-gradient(160deg,#FFFFFF 0%,#EEF9F4 45%,#D9F1E6 100%);
+  --sheen-app:radial-gradient(90% 40% at 20% 0%,rgba(255,255,255,1) 0%,rgba(255,255,255,0) 70%),radial-gradient(80% 45% at 100% 100%,rgba(60,190,140,.16) 0%,rgba(60,190,140,0) 70%),linear-gradient(180deg,#FFFFFF 0%,#F3FBF7 55%,#E6F6EE 100%);
+  --gold:#D6A558; --gold-ink:#7E5A17; --forest:#3E7752; --olive:#6A7A3B; --petrol:#023F56; --lilac:#7D68AE; --danger:#A8432F;
+  --on-gold:#2A1E08; --shadow:0 18px 50px rgba(2,63,86,.18); --soft:0 2px 10px rgba(2,63,86,.06);
+  --f-display:"Sora","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Nunito Sans","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#011820; --surface:#022F40; --card:#06384B; --card-2:#0A4459; --card-3:#0F5069;
+  --ink:#F4E4C4; --muted:#A7BCB6; --line:rgba(244,228,196,.14);
+  --gold-ink:#E9C27F; --forest:#72B68A; --olive:#A4B46A; --lilac:#B9A6E6; --danger:#E5826C; --shadow:0 18px 60px rgba(0,0,0,.5); --soft:none;
+  --sheen-page:radial-gradient(60% 50% at 100% 100%,rgba(46,175,125,.18) 0%,rgba(46,175,125,0) 70%),linear-gradient(160deg,#022B38,#011820);
+  --sheen-app:radial-gradient(80% 45% at 100% 100%,rgba(60,190,140,.12) 0%,rgba(60,190,140,0) 70%),linear-gradient(180deg,#023343,#022F40); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --page:#011820; --surface:#022F40; --card:#06384B; --card-2:#0A4459; --card-3:#0F5069;
+  --ink:#F4E4C4; --muted:#A7BCB6; --line:rgba(244,228,196,.14);
+  --gold-ink:#E9C27F; --forest:#72B68A; --olive:#A4B46A; --lilac:#B9A6E6; --danger:#E5826C; --shadow:0 18px 60px rgba(0,0,0,.5); --soft:none;
+  --sheen-page:radial-gradient(60% 50% at 100% 100%,rgba(46,175,125,.18) 0%,rgba(46,175,125,0) 70%),linear-gradient(160deg,#022B38,#011820);
+  --sheen-app:radial-gradient(80% 45% at 100% 100%,rgba(60,190,140,.12) 0%,rgba(60,190,140,0) 70%),linear-gradient(180deg,#023343,#022F40); color-scheme:dark}
+*{box-sizing:border-box}
+body{background-image:var(--sheen-page);background-attachment:fixed}
+.phone{background-image:var(--sheen-app)}
+.tabs{background:rgba(255,255,255,.72)!important;backdrop-filter:blur(10px)}
+:root[data-theme="dark"] .tabs{background:rgba(2,47,64,.85)!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tabs{background:rgba(2,47,64,.85)!important}}
+.overlay.light{background-image:var(--sheen-app)}
+html,body{height:100%}
+body{background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+p{margin:0}
+.wrap{display:flex;gap:36px;justify-content:center;align-items:flex-start;flex-wrap:wrap;max-width:1120px;margin:0 auto}
+
+/* ---------- celular ---------- */
+.phone{width:390px;max-width:100%;height:min(840px,calc(100dvh - 48px));min-height:660px;background:var(--surface);
+  border-radius:46px;border:10px solid #0F232B;box-shadow:var(--shadow);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.status{display:flex;justify-content:space-between;padding:12px 28px 2px;font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.scr{flex:1;overflow-y:auto;padding:6px 18px 22px;min-height:0;scrollbar-width:thin}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--surface);padding:6px 4px 12px}
+.tabs button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);padding:6px 0;border-radius:12px;font-weight:600}
+.tabs button[aria-current="page"]{color:var(--gold-ink);font-weight:800}
+.tabs button[aria-current="page"] svg{stroke:var(--gold)}
+.tabs svg{width:22px;height:22px}
+
+/* ---------- peças ---------- */
+.appbar{display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px}
+.brand{display:flex;align-items:center;gap:8px}
+.brand .wm{display:flex;flex-direction:column;line-height:1}
+.brand .wm b{font-family:var(--f-display);font-weight:700;letter-spacing:.16em;font-size:15px;color:var(--gold-ink)}
+.brand .wm span{font-size:8.5px;letter-spacing:.46em;color:var(--muted);font-weight:800;margin-top:3px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:800;background:var(--card-2);color:var(--gold-ink);border:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--soft)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.meta{color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.btn{border:0;border-radius:999px;padding:10px 16px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.gold{background:var(--gold);color:var(--on-gold)}
+.btn.green{background:var(--forest);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.small{padding:7px 12px;font-size:13px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.link{background:none;border:0;padding:0;color:var(--gold-ink);font-weight:800;font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--card-3);border-color:var(--gold);font-weight:800}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 8px}
+.sec-h h3{font-size:15.5px}
+.badge{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--card-2);color:var(--gold-ink);white-space:nowrap}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:13.5px}
+textarea,input[type=text],input[type=time]{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;width:100%}
+textarea{min-height:96px;resize:vertical}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.times .field label{font-size:12.5px;font-weight:600;color:var(--muted)}
+select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+
+/* hero (azul petróleo, como a prancha) */
+.hero{--ink:#F4E4C4;--muted:#B5CBC5;--line:rgba(244,228,196,.2);color:var(--ink);background:radial-gradient(120% 90% at 85% 0%,#0E5E7A 0%,#023F56 55%,#01303F 100%);border-radius:26px;padding:16px;position:relative;overflow:hidden}
+.hero .top{display:flex;gap:12px;align-items:flex-start}
+.bubble{background:#F4E4C4;color:#2A2416;border:1px solid #E6CF9F;border-radius:16px 16px 16px 4px;padding:10px 12px;font-size:14px;flex:1;min-width:0}
+.hero .next{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-top:14px}
+.ringsm{position:relative;width:74px;height:74px}
+.ringsm svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ringsm b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-display);font-size:18px;font-variant-numeric:tabular-nums;line-height:1;text-align:center}
+.ringsm b small{display:block;font-family:var(--f-body);font-size:10px;font-weight:700;color:var(--muted)}
+.hero h2{font-size:17px;margin:2px 0}
+.nowbtn{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;background:var(--card-2);border:1px solid var(--line);border-radius:22px;padding:12px 14px}
+.nowbtn b{font-family:var(--f-display);font-size:15.5px;display:block}
+.nowbtn .arrow{font-size:20px;color:var(--gold-ink)}
+.ck-card{border:1.5px dashed var(--gold);background:var(--card)}
+.recs{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.focus-bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:10px}
+.focus-bar i{display:block;height:100%;background:var(--forest);width:0}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl li{display:grid;grid-template-columns:46px 14px 1fr;gap:10px;align-items:start;padding:6px 0}
+.tl time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);font-weight:800}
+.tl .dot{width:12px;height:12px;border-radius:50%;margin-top:4px;background:var(--surface);border:2px solid var(--gold)}
+.tl li.done .dot{background:var(--gold)}
+.tl li.inv .dot{border-style:dashed}
+.tl b{font-weight:700;font-size:14px;display:block}
+.tl span{font-size:12.5px;color:var(--muted)}
+
+/* práticas */
+.prac{display:grid;grid-template-columns:72px 1fr auto;gap:12px;align-items:center;padding:8px 12px 8px 8px;border-radius:18px;background:var(--card);border:1px solid var(--line);text-align:left;width:100%}
+.prac .th{width:72px;height:52px;border-radius:12px;overflow:hidden;display:block}
+.prac .th svg{width:100%;height:100%;display:block}
+.prac b{display:block;font-size:14.5px;line-height:1.25}
+.prac small{color:var(--muted);font-size:12px}
+.dur{font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted);font-weight:800;white-space:nowrap}
+.seg{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.seg .chip{white-space:nowrap}
+.feature{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--card);text-align:left;width:100%;padding:0;display:block}
+.feature svg{display:block;width:100%;height:auto}
+.feature div{padding:12px 14px}
+.search{position:relative}
+.search input{padding-left:36px;border-radius:999px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted)}
+
+/* overlay da pausa: imersivo em azul petróleo */
+.overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;padding:14px 18px 20px;overflow-y:auto}
+.overlay.immersive{--ink:#F4E4C4;--muted:#B5CBC5;--line:rgba(244,228,196,.2);--card:#0A4A62;--card-2:#0D5570;--card-3:#126684;--gold-ink:#E9C27F;color:var(--ink);background:radial-gradient(120% 70% at 50% 0%,#0B5873 0%,#023F56 55%,#012C3D 100%)}
+.overlay.light{background:var(--surface)}
+.ov-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center;padding:0}
+.iconbtn svg{width:18px;height:18px}
+.iconbtn[aria-pressed="false"]{opacity:.5}
+.stage{position:relative;margin:12px 0 8px;border-radius:24px;overflow:hidden}
+.stage .illo{display:block;width:100%;height:auto}
+.timerpill{position:absolute;right:10px;bottom:10px;background:rgba(1,44,61,.78);color:#F4E4C4;border-radius:999px;padding:5px 12px;font-family:var(--f-display);font-weight:600;font-variant-numeric:tabular-nums;font-size:15px}
+.breathlbl{position:absolute;left:10px;bottom:10px;background:rgba(1,44,61,.78);color:#F4E4C4;border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px}
+.progress{height:5px;border-radius:5px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--gold);transition:width 1s linear}
+.caption{min-height:78px;text-align:center;font-size:18px;padding:12px 4px 4px;text-wrap:balance;font-weight:600}
+.caption small{display:block;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.steps-dots{display:flex;gap:6px;justify-content:center;margin:6px 0 14px}
+.steps-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.steps-dots i.on{background:var(--gold)}
+.warn{background:var(--card-2);border-radius:16px;padding:12px 14px;font-size:13.5px}
+.pause-actions{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pause-actions .btn:first-child{grid-column:1 / -1;padding:14px}
+.illo .breath{transform-origin:150px 112px;transform-box:view-box}
+.run .illo .breath{animation:breath 10s ease-in-out infinite}
+@keyframes breath{0%{transform:scale(.7)}40%{transform:scale(1.12)}100%{transform:scale(.7)}}
+.celebrate{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:24px;height:100%}
+.celebrate h1{font-size:30px}
+.spark{position:relative}
+.spark i{position:absolute;width:6px;height:6px;border-radius:50%;background:#F1D08F;animation:spark 1.6s ease-out forwards;left:50%;top:50%}
+@keyframes spark{from{transform:translate(-50%,-50%);opacity:1}to{transform:translate(var(--x),var(--y));opacity:0}}
+
+/* notificação */
+.notif{--ink:#F4E4C4;--muted:#A7C2BC;--line:rgba(244,228,196,.28);--card-3:#126684;color:var(--ink);position:absolute;left:10px;right:10px;top:34px;z-index:30;background:#023F56;border-radius:22px;padding:12px 14px;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:drop .35s ease}
+.notif .h{display:flex;gap:8px;align-items:center}
+.notif p{margin:6px 0 10px;font-size:14px}
+.alt{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);align-items:center}
+.alt span{font-size:12px;color:var(--muted)}
+@keyframes drop{from{transform:translateY(-20px);opacity:.3}to{transform:none;opacity:1}}
+
+/* check-in */
+.ck{display:flex;flex-direction:column;gap:14px;height:100%}
+.ck h1{font-size:23px}
+.faces{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.face{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:10px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700}
+.face svg{width:34px;height:34px}
+.face[aria-pressed="true"]{border-color:var(--gold);background:var(--card-3)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:13px 14px;text-align:left;font-weight:700}
+.opt[aria-pressed="true"]{border-color:var(--gold);background:var(--card-3)}
+.prog{display:flex;gap:4px;width:100%}
+.prog i{flex:1;height:4px;border-radius:4px;background:var(--line)}
+.prog i.on{background:var(--gold)}
+.foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;width:100%}
+.crisis{background:var(--card-2);border-left:4px solid var(--danger);border-radius:12px;padding:10px 12px;font-size:13.5px}
+
+/* árvore e progresso */
+.tree-box{display:grid;place-items:center;background:linear-gradient(var(--card-2),var(--card));border-radius:24px;padding:10px;border:1px solid var(--line)}
+.stages{display:flex;justify-content:space-between;gap:2px;margin-top:10px}
+.stages span{flex:1;min-width:0;text-align:center;font-size:9.5px;color:var(--muted);padding-top:6px;border-top:3px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stages span.on{border-color:var(--forest);color:var(--ink);font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:12px}
+.stat b{font-family:var(--f-display);font-size:22px;display:block;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
+.segtabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--card-2);border-radius:999px;padding:4px;margin-bottom:14px}
+.segtabs button{border:0;background:transparent;border-radius:999px;padding:8px;font-weight:700;font-size:13px;color:var(--muted)}
+.segtabs button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--soft)}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--f-body);font-size:11px;font-weight:700}
+.dims{display:flex;flex-direction:column;gap:10px}
+.dimrow{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center}
+.dimrow .bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin-top:4px}
+.dimrow .bar i{display:block;height:100%}
+.dimrow b{font-size:14px}
+.dimrow small{color:var(--muted);font-size:12px}
+.ico{border-radius:12px;display:grid;place-items:center;flex:none}
+.insight{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line)}
+.insight:last-child{border-bottom:0}
+.insight i{width:10px;height:10px;border-radius:50%;background:var(--gold);margin-top:6px;justify-self:center}
+.who q{display:block;font-weight:700;font-size:14px;quotes:none;margin:12px 0 6px}
+.scale{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.scale button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 0;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.scale button[aria-pressed="true"]{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+.seedrules{width:100%;border-collapse:collapse;font-size:13.5px}
+.seedrules td{padding:6px 0;border-bottom:1px solid var(--line)}
+.seedrules td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
+details summary{cursor:pointer;font-weight:800;font-size:13.5px;color:var(--gold-ink)}
+
+/* conversa */
+.chat{display:flex;flex-direction:column;gap:8px;padding-bottom:8px}
+.msg{max-width:84%;padding:10px 13px;border-radius:18px;font-size:14.5px}
+.msg.a{background:#F4E4C4;color:#2A2416;border:1px solid #E6CF9F;border-bottom-left-radius:6px;align-self:flex-start}
+.msg.u{background:#E9D3A6;color:#2A2416;border:1px solid #D9BC82;border-bottom-right-radius:6px;align-self:flex-end}
+.msg .btn.ghost{border-color:rgba(42,36,22,.25);color:#2A2416}
+.compose{display:flex;gap:8px;padding:8px 18px 4px;border-top:1px solid var(--line)}
+.compose input{flex:1;min-width:0;border-radius:999px}
+
+/* perfil e ajustes */
+.avatar{width:54px;height:54px;border-radius:50%;background:var(--gold);color:var(--on-gold);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:22px;flex:none}
+.understood{display:flex;flex-wrap:wrap;gap:6px}
+.understood span{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--card-2)}
+.why{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.why li{padding-left:16px;position:relative}
+.why li::before{content:"";position:absolute;left:2px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--forest)}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.set:last-child{border-bottom:0}
+.set label{font-weight:700}
+.set small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+.switch{appearance:none;width:44px;height:26px;border-radius:99px;background:var(--line);position:relative;flex:none;cursor:pointer;transition:background .2s;margin:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch:checked{background:var(--forest)}
+.switch:checked::after{transform:translateX(18px)}
+.switch:disabled{opacity:.4}
+input[type=range]{accent-color:var(--gold);width:120px}
+
+/* boas-vindas */
+.onb{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:14px;height:100%}
+.onb h1{font-size:24px}
+.onb>p{color:var(--muted);max-width:32ch}
+.promise{list-style:none;padding:0;margin:0;text-align:left;display:flex;flex-direction:column;gap:8px;width:100%}
+.promise li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}
+.onb .field,.onb .times{width:100%;text-align:left}
+
+/* anjo */
+.anjo{flex:none;display:block;overflow:visible}
+.anjo .core{transform-origin:center;transform-box:fill-box;animation:breathe 4.5s ease-in-out infinite}
+.anjo .wing{transform-origin:center bottom;transform-box:fill-box;animation:wing 4.5s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.07)}}
+@keyframes wing{50%{transform:rotate(var(--r,0deg)) scaleY(1.05)}}
+.anjo .wl{--r:-4deg}.anjo .wr{--r:4deg}
+@media (prefers-reduced-motion: reduce){.anjo .core,.anjo .wing,.notif,.run .illo .breath,.spark i{animation:none}}
+
+/* console */
+.console{width:360px;max-width:100%;display:flex;flex-direction:column;gap:16px;padding-top:8px}
+.console h2{font-size:22px}
+.console>p,.console .lead{color:var(--muted)}
+.ctabs{display:flex;gap:6px;flex-wrap:wrap}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mgrid button{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 11px;font-size:13px;line-height:1.3}
+.mgrid button b{display:block;font-size:13px}
+.mgrid button span{color:var(--muted);font-size:11.5px}
+.mgrid button.block-m{border-style:dashed}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;font-size:12.5px}
+.log li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.log time{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:800;margin-right:6px}
+.log .w{color:var(--muted)}
+.note{font-size:12px;color:var(--muted)}
+.widgets{display:flex;gap:12px;flex-wrap:wrap;padding:18px;border-radius:24px;background:linear-gradient(135deg,#0E5E7A,#023F56)}
+.wdg{background:rgba(250,242,225,.94);color:#1D2A24;border-radius:22px;padding:12px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.wdg.s{width:140px;height:140px;display:flex;flex-direction:column;justify-content:space-between}
+.wdg.m{width:100%;display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center}
+.wdg b{font-family:var(--f-display);font-size:14px;line-height:1.2}
+.wdg small{font-size:11px;color:#5A675D;font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid var(--line)}
+.tbl td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap}
+.queue{display:flex;flex-direction:column;gap:8px}
+.qi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:13px}
+.qi b{font-size:14px}
+.st-ok{color:var(--forest);font-weight:800}.st-adj{color:var(--gold-ink);font-weight:800}.st-no{color:var(--danger);font-weight:800}
+.toast{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);background:#023F56;color:#F4E4C4;padding:8px 14px;border-radius:999px;font-size:13px;z-index:40;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+
+/* Raio-X */
+:root{--up:#2E7D57;--down:#A8432F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--up:#7FD3A6;--down:#F0A08C}}
+:root[data-theme="dark"]{--up:#7FD3A6;--down:#F0A08C}
+.overlay.immersive,.xcard{--up:#7FE6B5;--down:#F4A68F}
+.xcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-radius:22px;padding:14px;color:#F4E4C4;background:linear-gradient(135deg,#0E7A5F 0%,#0B5873 55%,#023F56 100%);box-shadow:0 10px 24px rgba(14,122,95,.25);position:relative;overflow:hidden}
+.xcard b{font-family:var(--f-display);font-size:16px;display:block}
+.xcard .meta{color:#CFE3DC}
+.xcard .arrow{font-size:22px;color:#F1D08F}
+.xcard::after{content:"";position:absolute;left:0;right:0;height:40%;top:-40%;background:linear-gradient(180deg,transparent,rgba(95,224,168,.22),transparent);animation:sweep 3.5s ease-in-out infinite;pointer-events:none}
+@keyframes sweep{to{top:100%}}
+.scw{display:flex;flex-direction:column;gap:14px;min-height:100%}
+.scanfig{position:relative;display:grid;place-items:center;padding:12px;border-radius:24px;background:radial-gradient(circle at 50% 50%,rgba(95,224,168,.16),transparent 70%);overflow:hidden;border:1px solid rgba(95,224,168,.18)}
+.scanfig .line{position:absolute;left:6%;right:6%;height:2px;top:0;background:linear-gradient(90deg,transparent,#5FE0A8,transparent);box-shadow:0 0 14px #5FE0A8;animation:scanl 2.4s ease-in-out infinite alternate}
+@keyframes scanl{from{top:4%}to{top:96%}}
+.scanfig .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(95,224,168,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(95,224,168,.09) 1px,transparent 1px);background-size:18px 18px}
+.sq{display:block;font-weight:700;font-size:14px;quotes:none;margin:4px 0 6px}
+.radar text{fill:currentColor;font-size:11px;font-weight:800;font-family:var(--f-body)}
+.reg{cursor:pointer}
+.reg:focus-visible{outline:2px solid #5FE0A8}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.tapbig{width:180px;height:180px;border-radius:50%;border:2px solid #5FE0A8;background:radial-gradient(circle,rgba(95,224,168,.28),rgba(95,224,168,.05));color:var(--ink);font-weight:800;font-size:15px;margin:6px auto;display:grid;place-items:center;text-align:center;padding:16px;line-height:1.3}
+.tapbig:active{transform:scale(.96)}
+.lv{border-radius:18px;padding:14px;background:var(--card);border:1px solid var(--line)}
+.lv h3{font-size:16px;margin:2px 0 6px}
+.lv .n{font-family:var(--f-display);font-weight:700;color:var(--gold-ink);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em}
+.lv p{font-size:13.5px;margin:4px 0}
+.delta{display:grid;grid-template-columns:1fr auto 42px;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;align-items:center}
+.delta:last-child{border-bottom:0}
+.delta b{text-align:right}
+.delta .up{color:var(--up)}.delta .down{color:var(--down)}
+.anl{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.anl li{opacity:0;animation:fadein .4s ease forwards}
+.anl li::before{content:"✓ ";color:#5FE0A8;font-weight:800}
+@keyframes fadein{to{opacity:1}}
+.dots21{display:grid;grid-template-columns:repeat(21,1fr);gap:3px;margin:10px 0 6px}
+.dots21 i{height:6px;border-radius:3px;background:var(--line)}
+.dots21 i.on{background:var(--gold)}
+.dots21 i.now{background:var(--forest)}
+.check{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:800}
+.check.ok{background:var(--forest);border-color:var(--forest);color:#fff}
+@media (prefers-reduced-motion: reduce){.xcard::after,.scanfig .line{animation:none}.anl li{animation:none;opacity:1}}
+
+/* ---------- app web: tela cheia no celular, coluna central no computador ---------- */
+[hidden]{display:none!important}
+img{max-width:100%}
+html,body{margin:0;height:100%}
+body{padding:0!important;overflow:hidden}
+.wrap{display:block;max-width:none;height:100%}
+.phone{width:100%;max-width:480px;height:100dvh;min-height:0;margin:0 auto;border:0;border-radius:0;box-shadow:none;
+  padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.status{display:none}
+.tabs{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.overlay{padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.notif{top:calc(10px + env(safe-area-inset-top,0px))}
+@media (min-width:600px){
+  .phone{height:calc(100dvh - 40px);margin:20px auto;border-radius:32px;box-shadow:var(--shadow);border:1px solid var(--line)}
+}
+.offline{position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:45;background:#023F56;color:#F4E4C4;font-size:12px;padding:4px 10px;border-radius:999px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="phone" id="phone">
+    <main class="scr" id="scr"></main>
+    <div id="composeSlot"></div>
+    <nav class="tabs" id="tabs" aria-label="Navegação do app"></nav>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ================= utilidades ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=sec=>sec>=60?Math.round(sec/60)+" min":sec+" s";
+const clockF=sec=>Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
+const toMin=t=>{const a=String(t||"0:0").split(":").map(Number);return a[0]*60+(a[1]||0);};
+const fromMin=n=>{n=((n%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");};
+const plus=(t,m)=>fromMin(toMin(t)+m);
+const isoDay=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const addDays=(iso,n)=>{const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+n);return isoDay(d);};
+const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
+let TODAY=isoDay(new Date());
+const WD=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+let TODAY_IDX=(new Date().getDay()+6)%7;
+const nowStr=()=>{const d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
+const fmtDate=iso=>iso.slice(8,10)+"/"+iso.slice(5,7);
+
+/* ================= dados do documento ================= */
+const FAM={
+  corpo:{n:"Corpo",d:"Corpo"}, resp:{n:"Respiração",d:"Mente"}, mente:{n:"Mente e emoção",d:"Mente"},
+  olhos:{n:"Olhos",d:"Corpo"}, natu:{n:"Natureza",d:"Natureza"}, agua:{n:"Nutrição e água",d:"Corpo"}, sono:{n:"Descanso e sono",d:"Mente"}
+};
+const SIZE={micro:{n:"Micropausas",one:"micropausa",r:"15 a 30 s",seeds:1},curta:{n:"Pausas curtas",one:"pausa curta",r:"1 a 3 min",seeds:2},
+  media:{n:"Pausas médias",one:"pausa média",r:"5 a 15 min",seeds:3},completa:{n:"Práticas completas",one:"prática completa",r:"15 a 60 min",seeds:5}};
+// [id, nome, família, tamanho, segundos, passos, cuidados, pose da ilustração]
+const P=[
+ ["postura","Correção de postura","corpo","micro",20,["Pés no chão, apoiados por inteiro","Coluna longa, como se um fio puxasse a cabeça","Ombros para trás e para baixo","Queixo levemente recolhido"],"","sit"],
+ ["resp3","Respiração profunda","resp","micro",24,["Solte todo o ar, devagar","Inspire pelo nariz, sem pressa","Expire mais longo do que inspirou","Mais duas vezes, no seu ritmo"],"","lotus"],
+ ["positivo","Pensamento positivo","mente","micro",20,["Feche os olhos, se quiser","Lembre uma coisa boa de hoje","Ou alguém a quem agradecer","Fique um instante com isso"],"","lotus"],
+ ["distante","Olhar distante","olhos","micro",20,["Procure algo a uns seis metros","Olhe para lá, sem esforço","Pisque devagar algumas vezes"],"","sit"],
+ ["mandibula","Soltar a mandíbula","corpo","micro",15,["Separe os dentes","Relaxe a língua","Solte o rosto e a testa"],"","sit"],
+ ["agua","Gole de água","agua","micro",20,["Pegue sua água","Beba devagar","Sinta a temperatura e o gosto"],"","sit"],
+ ["escutar","Escutar a vida","natu","micro",20,["Feche os olhos","Procure um som vivo","Um pássaro, o vento ou uma voz"],"","lotus"],
+ ["maos","Alongamento de mãos e braços","corpo","curta",120,["Abra e feche as mãos dez vezes","Alongue cada punho para cima e para baixo","Gire os braços para a frente","Agora gire para trás","Gire os ombros, bem devagar"],"","side"],
+ ["pescoco","Pescoço e ombros","corpo","curta",90,["Incline a cabeça para a direita","Agora para a esquerda","Role os ombros para trás","Solte os braços ao lado do corpo"],"","sit"],
+ ["caminhar","Levantar e caminhar","corpo","curta",60,["Levante-se com calma","Caminhe até a janela ou até a água","Volte devagar, sentindo os pés"],"","walk"],
+ ["r46","Respiração 4–6","resp","curta",60,["Inspire em quatro tempos","Expire em seis tempos","Repita, sem forçar","Seis ciclos no total"],"","lotus"],
+ ["ativacao","Ativação corporal rápida","corpo","curta",60,["Sacuda as mãos","Sacuda braços e pernas","Eleve os calcanhares dez vezes","Pequenos saltos, se puder"],"","up"],
+ ["gratidao","Gratidão escrita","mente","curta",120,["Pegue papel ou o bloco de notas","Anote uma coisa pela qual é grato","Anote a segunda","E a terceira"],"","sit"],
+ ["palming","Palming","olhos","curta",60,["Esfregue as mãos até aquecer","Cubra os olhos fechados com as palmas","Fique no escuro, respirando"],"","sit"],
+ ["janela","Janela viva","natu","curta",90,["Vá até uma janela","Olhe o céu, uma planta ou uma árvore","Descreva para si o que vê"],"","walk"],
+ ["caminhada","Caminhada consciente","natu","media",600,["Saia para caminhar devagar","Preste atenção em cada passo","Procure os sons vivos ao redor","Volte quando sentir que deu"],"","walk"],
+ ["along","Alongamento completo","corpo","media",420,["Em pé, pés na largura do quadril","Braços para o alto, alongando","Incline para cada lado","Desça o tronco devagar","Suba vértebra por vértebra"],"","up"],
+ ["medit","Meditação guiada","mente","media",480,["Sente-se confortável","Perceba a respiração","Perceba o corpo apoiado","Quando a mente for embora, volte com gentileza"],"","lotus"],
+ ["scan","Escaneamento corporal","mente","media",420,["Comece pela cabeça","Desça para ombros e braços","Tronco e barriga","Pernas, até os pés"],"","lie"],
+ ["pes","Pés na terra","natu","media",300,["Tire os sapatos","Pise na grama ou na terra","Respire sentindo o chão"],"","up"],
+ ["lanche","Lanche vivo","agua","media",420,["Escolha uma fruta","Prepare com atenção","Coma sem tela, devagar"],"","sit"],
+ ["cochilo","Cochilo curto","sono","media",720,["Deite ou recoste","Feche os olhos","O timer avisa no fim"],"","lie"],
+ ["ativ","Exercícios de ativação corporal","corpo","completa",1200,["Articulações, uma a uma","Sacudidas de corpo inteiro","Respiração vigorosa","Volta à calma"],"Adapte a limitações físicas. Pare se houver dor ou tontura.","up"],
+ ["banho","Banho alternado com automassagem","agua","completa",1200,["Água morna por dois minutos","Água fria por trinta segundos","Repita três vezes","Automassagem com óleo"],"Não indicado para quem tem problema cardíaco ou de pressão sem orientação médica. Evite água muito quente.","up"],
+ ["yoga","Yoga regenerativo","corpo","completa",1800,["Aterrissar e respirar","Sequência iniciante","Posturas restaurativas","Relaxamento final"],"Níveis iniciante e intermediário. Respeite seus limites.","side"],
+ ["respav","Respiração consciente avançada","resp","completa",900,["Sente-se em segurança","Técnica guiada em ciclos","Retenção leve","Volta à respiração natural"],"Nunca na água, dirigindo ou em pé. Gestantes e quem tem problema cardíaco ou respiratório, só com orientação.","lotus"],
+ ["meditc","Meditação guiada","mente","completa",1200,["Encontre um lugar tranquilo e sente-se confortável","Feche os olhos e solte o peso do corpo","Acompanhe a respiração entrando e saindo","Perceba os sons ao redor, sem julgar","Observe os pensamentos passando, como nuvens","Volte à respiração sempre que se distrair","Leve a atenção ao corpo inteiro","Abra os olhos devagar e perceba como está"],"Se surgirem emoções difíceis, pode parar a qualquer momento. Em caso de sofrimento intenso, procure um profissional.","lotus"],
+ ["floresta","Banho de floresta","natu","completa",2700,["Chegue a uma área verde","Visão: cores e formas","Audição: sons vivos","Tato e olfato","Sente-se e descanse"],"Verifique a segurança do local.","walk"],
+ ["danca","Dança livre","corpo","completa",900,["Escolha uma música","Deixe o corpo se mover","Sem jeito certo"],"","up"],
+ ["sono","Ritual de sono","sono","completa",900,["Desligue as telas","Prepare um chá","Alongamento leve","Respiração lenta, já na cama"],"","lie"]
+].map(a=>({id:a[0],name:a[1],fam:a[2],size:a[3],sec:a[4],steps:a[5],warn:a[6],pose:a[7],author:"Curadoria EYWA"}));
+const byId=id=>P.find(p=>p.id===id);
+
+const DIMS={
+  Corpo:{c:"#3E7752",s:"Vitalidade e movimento",i:'<circle cx="14" cy="4.5" r="2"/><path d="M8 21l3.2-6 3 2.2V21"/><path d="M6 11.5l4-3 4.2 1.6 3.3-2.4"/><path d="M11.2 15l1.6-6.5"/>'},
+  Mente:{c:"#7D68AE",s:"Clareza e presença",i:'<path d="M12 18c-2.6-1.8-3.8-4.6-3.8-8 2 .9 3.3 2.4 3.8 4 .5-1.6 1.8-3.1 3.8-4 0 3.4-1.2 6.2-3.8 8z"/><path d="M12 18c-4.2 0-7-2-8-5 2 0 3.8.5 5.3 1.4"/><path d="M12 18c4.2 0 7-2 8-5-2 0-3.8.5-5.3 1.4"/>'},
+  Natureza:{c:"#6A7A3B",s:"Reconexão e consciência",i:'<path d="M12 21v-9"/><path d="M12 12c0-4-3-6.5-7-6.5 0 4 3 6.5 7 6.5z"/><path d="M12 10c0-3.2 2.2-5.5 6-5.5 0 3.2-2.2 5.5-6 5.5z"/><path d="M8 21h8"/>'}
+};
+const GOALS={
+  foco:{n:"Mais foco nos estudos",f:["olhos","resp","corpo"]}, costas:{n:"Menos dor nas costas",f:["corpo"]},
+  ansiedade:{n:"Menos ansiedade",f:["resp","mente"]}, sono:{n:"Dormir melhor",f:["sono","resp"]},
+  energia:{n:"Mais energia",f:["corpo","agua"]}, natureza:{n:"Mais natureza",f:["natu"]}
+};
+const SAFETY={gest:{n:"Gestação",hide:["respav","banho","ativ"]},cardio:{n:"Problema cardíaco ou de pressão",hide:["banho","respav"]},lesao:{n:"Lesão ou limitação física",hide:["ativ","danca","yoga","ativacao"]}};
+const STAGES=[["Semente",0],["Germinação",5],["Muda",15],["Árvore",30],["Flor",50],["Fruto",80],["Floresta",120]];
+const FORMS=[["Luz",0],["Presença",8],["Companheiro",25],["Anjo",60]];
+
+/* ================= estado ================= */
+// Formato de dados v1 do ANJO web. Ao migrar para o app com contas, "Exportar meus dados" gera este JSON para importar.
+const KEY="anjo-eywa-app-v1";
+const DEFAULT=()=>({
+  v:1,onboarded:false,name:"",seeds:0,done:0,day:isoDay(new Date()),todayDone:[],perDay:5,quietFrom:"22:00",
+  fams:Object.keys(FAM),steps:false,narr:true,music:true,notify:false,theme:"auto",ckTime:"08:00",refusals:0,shownToday:0,fired:[],focusStart:null,focusLen:50,
+  stats:{},goals:[],safety:{gest:false,cardio:false,lesao:false},
+  profile:{texto:"",acordar:"07:00",inicio:"09:00",fim:"18:00",estudo:"noite",dormir:"23:00",lugar:"Casa"},
+  days:{}, today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null
+});
+let S;
+try{S=Object.assign(DEFAULT(),JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(e){S=DEFAULT();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+// histórico por dia: pausas, minutos de estudo e humor do check-in
+const dayRec=(d=TODAY)=>(S.days[d]=S.days[d]||{p:0,f:0,h:null});
+// virada do dia: zera o que é "de hoje" e guarda o resto no histórico
+function rollover(){
+  TODAY=isoDay(new Date()); TODAY_IDX=(new Date().getDay()+6)%7;
+  if(S.day===TODAY) return false;
+  S.day=TODAY; S.todayDone=[]; S.shownToday=0; S.refusals=0; S.fired=[]; S.today=null;
+  if(S.focusStart&&Date.now()-S.focusStart>S.focusLen*60000) S.focusStart=null;
+  save(); return true;
+}
+rollover();
+
+let tab="hoje", sub="arvore", onbStep=-1, pause=null, notif=null, ck=null, toastT=null, nowT=nowStr(), filt="todas", q="", who5Ans=null, confirmDel=false;
+function addLog(){} // o registro do motor existia só no painel de demonstração
+
+/* ================= o ANJO (logo e formas) ================= */
+const GRAD=`<defs>
+ <radialGradient id="aG" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#FFF6DD"/><stop offset=".5" stop-color="#F0C97A"/><stop offset="1" stop-color="#D6A558"/></radialGradient>
+ <radialGradient id="aGlow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F6D998" stop-opacity=".75"/><stop offset="1" stop-color="#D6A558" stop-opacity="0"/></radialGradient>
+ <linearGradient id="aW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBE7B8"/><stop offset="1" stop-color="#D6A558" stop-opacity=".55"/></linearGradient></defs>`;
+// logo: o ANJO alado, com halo, asas e corpo de luz
+function angelFigure(withHalo){
+  return `<circle cx="50" cy="52" r="44" fill="url(#aGlow)"/>
+   <g class="wing wl"><path d="M47 44 C34 26 14 26 8 40 C16 40 22 44 26 50 C18 50 14 56 14 60 C26 58 36 56 46 54Z" fill="url(#aW)"/></g>
+   <g class="wing wr"><path d="M53 44 C66 26 86 26 92 40 C84 40 78 44 74 50 C82 50 86 56 86 60 C74 58 64 56 54 54Z" fill="url(#aW)"/></g>
+   <path class="core" d="M50 38 C43 44 40 62 37 80 C45 84 55 84 63 80 C60 62 57 44 50 38Z" fill="url(#aG)"/>
+   <circle class="core" cx="50" cy="31" r="8.5" fill="url(#aG)"/>
+   ${withHalo?`<ellipse cx="50" cy="18" rx="10" ry="3" fill="none" stroke="#E9C27F" stroke-width="2.2"/>`:""}`;
+}
+function anjoLogo(size){return `<svg class="anjo" width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="Logo do ANJO">${GRAD}${angelFigure(true)}</svg>`;}
+function anjo(size,form){
+  const f=form==null?formIdx(S.done):form;
+  let inner;
+  if(f===0) inner=`<circle cx="50" cy="52" r="40" fill="url(#aGlow)"/><ellipse cx="50" cy="52" rx="38" ry="11" fill="none" stroke="#D6A558" stroke-opacity=".75" stroke-width="2" transform="rotate(-18 50 52)"/><circle class="core" cx="50" cy="52" r="17" fill="url(#aG)"/>`;
+  else if(f===1) inner=`<circle cx="50" cy="52" r="42" fill="url(#aGlow)"/><g class="wing wl" opacity=".7"><path d="M46 52 C36 40 22 42 18 52 C28 52 36 56 46 58Z" fill="url(#aW)"/></g><g class="wing wr" opacity=".7"><path d="M54 52 C64 40 78 42 82 52 C72 52 64 56 54 58Z" fill="url(#aW)"/></g><circle class="core" cx="50" cy="52" r="15" fill="url(#aG)"/>`;
+  else inner=angelFigure(f===3);
+  return `<svg class="anjo" width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="ANJO, forma ${FORMS[f][0]}">${GRAD}${inner}</svg>`;
+}
+const brand=s=>`<div class="brand">${anjoLogo(s)}<div class="wm"><b>ANJO</b><span>EYWA</span></div></div>`;
+const dimIcon=(d,size=40)=>`<span class="ico" style="background:${DIMS[d].c};width:${size}px;height:${size}px"><svg viewBox="0 0 24 24" width="${Math.round(size*.6)}" height="${Math.round(size*.6)}" fill="none" stroke="#F4E4C4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DIMS[d].i}</svg></span>`;
+const stageIdx=n=>{let i=0;STAGES.forEach((s,j)=>{if(n>=s[1])i=j;});return i;};
+const formIdx=n=>{let i=0;FORMS.forEach((s,j)=>{if(n>=s[1])i=j;});return i;};
+
+/* ================= ilustrações das práticas ================= */
+function fig(x,y,pose,c){
+  const L=(a,b,c2,d)=>`<path d="M${a} ${b}L${c2} ${d}"/>`;
+  let s=`<g stroke="${c}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">`, hx=x, hy=y-72;
+  if(pose==="up") s+=L(x,y-58,x,y-26)+L(x,y-26,x-13,y)+L(x,y-26,x+13,y)+L(x,y-52,x-20,y-88)+L(x,y-52,x+20,y-88);
+  else if(pose==="side") s+=L(x,y-58,x,y-26)+L(x,y-26,x-13,y)+L(x,y-26,x+13,y)+L(x,y-52,x-36,y-62)+L(x,y-52,x+36,y-44);
+  else if(pose==="walk") s+=L(x,y-58,x+3,y-26)+L(x+3,y-26,x-12,y)+L(x+3,y-26,x+18,y-3)+L(x,y-52,x-15,y-34)+L(x,y-52,x+15,y-38);
+  else if(pose==="sit"){ s+=`<path d="M${x-16} ${y-28}h44M${x-12} ${y-28}v28M${x+24} ${y-28}v28" stroke-width="4" opacity=".45"/>`+L(x,y-62,x,y-32)+L(x,y-32,x+26,y-32)+L(x+26,y-32,x+26,y-3)+L(x,y-54,x+22,y-44); hy=y-76; }
+  else if(pose==="lotus"){ s+=L(x,y-58,x,y-22)+`<path d="M${x-30} ${y-10}Q${x} ${y-28} ${x+30} ${y-10}"/>`+L(x,y-50,x-22,y-20)+L(x,y-50,x+22,y-20); hy=y-71; }
+  else if(pose==="lie"){ s+=`<path d="M${x-60} ${y-4}h130" stroke-width="5" opacity=".4"/>`+L(x-30,y-14,x+32,y-14)+L(x+32,y-14,x+48,y-6); hx=x-44; hy=y-20; }
+  return s+`</g><circle cx="${hx}" cy="${hy}" r="10.5" fill="${c}"/>`;
+}
+const sun=(x,y,r,c="#F2C266")=>`<circle cx="${x}" cy="${y}" r="${r+12}" fill="${c}" opacity=".25"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`;
+const tree=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><rect x="-3" y="-34" width="6" height="34" fill="#6B4E2E"/><circle cy="-44" r="18" fill="#3E7752"/><circle cx="-11" cy="-34" r="12" fill="#4E8F6A"/><circle cx="11" cy="-34" r="12" fill="#4E8F6A"/></g>`;
+const glow=(x,y)=>`<circle cx="${x}" cy="${y}" r="14" fill="#F6D998" opacity=".35"/><circle cx="${x}" cy="${y}" r="6" fill="#F6D998"/><ellipse cx="${x}" cy="${y}" rx="14" ry="4" fill="none" stroke="#D6A558" stroke-width="1.5" transform="rotate(-18 ${x} ${y})"/>`;
+function illo(p){
+  const f=p.fam, ink="#023F56";
+  const bg={corpo:["#F6E7C6","#C9DDB4"],olhos:["#F6E7C6","#BCD6CC"],agua:["#F6E7C6","#BBDADA"],resp:["#EDE4F6","#F6E7C6"],mente:["#E6DBF3","#F6E7C6"],natu:["#FBE1A3","#A9C687"],sono:["#0D4A66","#022B3B"]}[f];
+  const id="ig-"+p.id;
+  let s=`<svg class="illo" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Ilustração de ${esc(p.name)}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bg[0]}"/><stop offset="1" stop-color="${bg[1]}"/></linearGradient></defs><rect width="320" height="200" fill="url(#${id})"/>`;
+  if(f==="corpo") s+=sun(262,46,16)+`<path d="M0 172h320v28H0z" fill="#3E7752" opacity=".18"/>`+(p.pose==="walk"?tree(60,172,.9)+tree(255,172,.7):"");
+  if(f==="olhos") s+=`<rect x="196" y="34" width="96" height="110" rx="10" fill="#E9F2EE" stroke="#023F56" stroke-opacity=".25" stroke-width="4"/><path d="M200 120Q230 92 252 110T288 100V140H200z" fill="#6A7A3B" opacity=".55"/>`+sun(262,70,9)+`<path d="M0 172h320v28H0z" fill="#023F56" opacity=".08"/>`;
+  if(f==="agua") s+=`<path d="M0 176h320v24H0z" fill="#023F56" opacity=".08"/><path d="M210 112h36l-5 60h-26z" fill="#E9F6F6" stroke="#023F56" stroke-opacity=".35" stroke-width="3"/><path d="M213 136h30l-3 34h-24z" fill="#5DB1C0" opacity=".7"/>`+(p.id==="lanche"?`<circle cx="258" cy="162" r="11" fill="#E26A3B"/><path d="M258 151q4-7 9-5" stroke="#3E7752" stroke-width="3" fill="none"/>`:`<path d="M84 52q8 12 0 18q-8-6 0-18z" fill="#5DB1C0" opacity=".6"/><path d="M60 82q6 9 0 14q-6-5 0-14z" fill="#5DB1C0" opacity=".45"/>`);
+  if(f==="resp") s+=`<g class="breath"><circle cx="150" cy="112" r="88" fill="#7D68AE" opacity=".1"/><circle cx="150" cy="112" r="62" fill="#7D68AE" opacity=".12"/><circle cx="150" cy="112" r="38" fill="#FFFFFF" opacity=".35"/></g><path d="M22 70q30-14 60 0t60 0" stroke="#7D68AE" stroke-opacity=".35" stroke-width="3" fill="none"/><path d="M190 52q30-14 60 0t60 0" stroke="#7D68AE" stroke-opacity=".3" stroke-width="3" fill="none"/>`;
+  if(f==="mente") s+=`<g transform="translate(262 160)" opacity=".9"><path d="M0 0c-6-10-6-22 0-32 6 10 6 22 0 32z" fill="#B9A6E6"/><path d="M0 0c-12-4-20-14-22-26 12 2 20 12 22 26z" fill="#9A85CF"/><path d="M0 0c12-4 20-14 22-26-12 2-20 12-22 26z" fill="#9A85CF"/></g>`+[[60,50],[96,30],[230,40],[200,74]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="#7D68AE" opacity=".5"/>`).join("")+`<path d="M0 176h320v24H0z" fill="#7D68AE" opacity=".1"/>`;
+  if(f==="natu") s+=sun(250,50,20)+`<path d="M0 150Q80 110 160 140T320 128V200H0z" fill="#6A7A3B" opacity=".55"/><path d="M0 172Q100 150 200 166T320 160V200H0z" fill="#3E7752" opacity=".7"/>`+tree(46,166,1)+tree(282,160,.8)+`<path d="M70 50l6 5 6-5M96 38l5 4 5-4" stroke="#023F56" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  if(f==="sono") s+=`<path d="M262 30a22 22 0 1 0 18 36a18 18 0 1 1-18-36z" fill="#F4E4C4"/>`+[[40,30],[80,60],[130,24],[200,46],[300,90],[176,80]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i%2?1.6:2.4}" fill="#F4E4C4" opacity=".8"/>`).join("")+(p.id==="sono"?`<path d="M232 150h26v14a13 13 0 0 1-26 0z" fill="#D6A558"/><path d="M240 144q-4-8 2-12M248 144q-4-8 2-12" stroke="#F4E4C4" stroke-opacity=".6" stroke-width="2" fill="none"/>`:"");
+  const gy=f==="sono"?178:172;
+  s+=fig(f==="sono"?140:(f==="olhos"||f==="agua"?120:150),gy,p.pose||"side",f==="sono"?"#F4E4C4":ink);
+  s+=glow(f==="sono"?60:40,f==="sono"?140:34);
+  return s+`</svg>`;
+}
+
+function treeSVG(stage){
+  const h=[8,18,34,52,58,60,60][stage];
+  const can=stage>=2?[[0,-h-6,14+stage*4]].concat(stage>=3?[[-16,-h+6,12+stage*2],[16,-h+6,12+stage*2]]:[]):[];
+  let s=`<svg viewBox="-110 -130 220 150" width="100%" style="max-width:280px" role="img" aria-label="Árvore no estágio ${STAGES[stage][0]}"><ellipse cx="0" cy="4" rx="90" ry="10" fill="#6A7A3B" opacity=".35"/>`;
+  if(stage===6)[[-70,.55],[70,.6],[-42,.4],[46,.42]].forEach(([x,k])=>{s+=tree(x,2,k*1.4);});
+  if(stage===0) s+=`<ellipse cx="0" cy="-2" rx="7" ry="5" fill="#9A6B3A"/>`;
+  else{
+    s+=`<path d="M-${2+stage} 0L-${1+stage*.5} -${h}L${1+stage*.5} -${h}L${2+stage} 0Z" fill="#7A5A35"/>`;
+    if(stage===1) s+=`<path d="M0 -${h}C-10 -${h+8} -14 -${h+2} -14 -${h-2}C-8 -${h-2} -3 -${h-1} 0 -${h}Z" fill="#4E8F6A"/><path d="M0 -${h}C10 -${h+8} 14 -${h+2} 14 -${h-2}C8 -${h-2} 3 -${h-1} 0 -${h}Z" fill="#3E7752"/>`;
+    can.forEach(([x,y,r],i)=>{s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${i?"#4E8F6A":"#3E7752"}"/>`;});
+    if(stage>=4)[[-10,-h-14],[12,-h-4],[-20,-h+2],[4,-h-22],[22,-h+10]].forEach(([x,y])=>{s+=`<circle cx="${x}" cy="${y}" r="3" fill="#F4E4C4"/><circle cx="${x}" cy="${y}" r="1.3" fill="#D6A558"/>`;});
+    if(stage>=5)[[-4,-h+4],[18,-h-12],[-18,-h-8]].forEach(([x,y])=>{s+=`<circle cx="${x}" cy="${y}" r="4" fill="#D6A558"/>`;});
+  }
+  return s+`</svg>`;
+}
+
+/* ================= narração e música ================= */
+const Voice={
+  speak(t){ if(!S.narr) return; try{const ss=window.speechSynthesis; if(!ss) return; ss.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="pt-BR"; u.rate=.9;
+    const vs=ss.getVoices(); const v=vs.find(v=>/pt[-_]BR/i.test(v.lang))||vs.find(v=>/^pt/i.test(v.lang)); if(v) u.voice=v; ss.speak(u);}catch(e){} },
+  stop(){ try{window.speechSynthesis&&speechSynthesis.cancel();}catch(e){} }
+};
+const Music={ctx:null,master:null,nodes:[],
+  ensure(){ if(this.ctx) return this.ctx; try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){this.ctx=null;} return this.ctx; },
+  start(dim){
+    if(!S.music) return; const c=this.ensure(); if(!c) return; try{c.resume();}catch(e){}
+    this.stop(true);
+    const m=c.createGain(); m.gain.value=0; m.gain.linearRampToValueAtTime(.11,c.currentTime+3);
+    const lp=c.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=dim==="Corpo"?1800:1100; lp.connect(m); m.connect(c.destination);
+    const ch={Corpo:[146.83,220,293.66,369.99],Mente:[110,164.81,220,261.63],Natureza:[130.81,196,261.63,329.63]}[dim]||[110,164.81,220,261.63];
+    ch.forEach((f,i)=>{const o=c.createOscillator(); o.type=i%2?"sine":"triangle"; o.frequency.value=f; o.detune.value=(i-1.5)*5;
+      const g=c.createGain(); g.gain.value=.16/(i+1)+.04; const l=c.createOscillator(); l.frequency.value=.05+i*.031; const lg=c.createGain(); lg.gain.value=.05;
+      l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(lp); o.start(); l.start(); this.nodes.push(o,l);});
+    if(dim==="Natureza"){ // vento suave
+      const len=c.sampleRate*2, b=c.createBuffer(1,len,c.sampleRate), d=b.getChannelData(0); let last=0;
+      for(let i=0;i<len;i++){ last=(last+.02*(Math.random()*2-1))/1.02; d[i]=last*3.5; }
+      const n=c.createBufferSource(); n.buffer=b; n.loop=true; const bp=c.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=500; bp.Q.value=.6;
+      const ng=c.createGain(); ng.gain.value=.5; n.connect(bp); bp.connect(ng); ng.connect(m); n.start(); this.nodes.push(n);
+    }
+    this.master=m;
+  },
+  chime(){ if(!S.music) return; const c=this.ensure(); if(!c) return; try{const o=c.createOscillator(),g=c.createGain(); o.type="sine"; o.frequency.value=880;
+    g.gain.setValueAtTime(.0001,c.currentTime); g.gain.exponentialRampToValueAtTime(.08,c.currentTime+.02); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+1.6);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+1.7);}catch(e){} },
+  stop(fast){ if(!this.ctx||!this.master) return; const c=this.ctx,m=this.master,ns=this.nodes;
+    try{m.gain.cancelScheduledValues(c.currentTime); m.gain.setValueAtTime(m.gain.value,c.currentTime); m.gain.linearRampToValueAtTime(0,c.currentTime+(fast?.3:1.2));}catch(e){}
+    setTimeout(()=>{ns.forEach(n=>{try{n.stop();}catch(e){}}); try{m.disconnect();}catch(e){}},fast?400:1400); this.nodes=[]; this.master=null; }
+};
+
+/* ================= Raio-X do ANJO: dados ================= */
+// PSS-4 (Escala de Estresse Percebido); itens 2 e 3 são invertidos
+const PSSQ=[["Com que frequência você sentiu que não conseguia controlar as coisas importantes da sua vida?",0],["Com que frequência você se sentiu confiante para lidar com seus problemas pessoais?",1],["Com que frequência você sentiu que as coisas aconteciam do seu jeito?",1],["Com que frequência sentiu que as dificuldades se acumulavam tanto que não conseguia superá-las?",0]];
+const PSSS=["Nunca","Quase nunca","Às vezes","Frequentemente","Muito frequentemente"];
+const REG={cabeca:"Cabeça",olhos:"Olhos",mandibula:"Mandíbula",pescoco:"Pescoço",ombros:"Ombros",costas:"Costas e peito",lombar:"Lombar",maos:"Mãos e punhos",quadril:"Quadril",pernas:"Pernas"};
+const TRILHAS={
+  costas:{n:"Costas livres",d:"Menos tensão no pescoço, ombros e lombar",w:[["postura","pescoco","caminhar"],["maos","pescoco","ativacao"],["along","pescoco","caminhar"]]},
+  calma:{n:"Calma antes da prova",d:"Menos estresse para estudar e fazer provas",w:[["resp3","positivo","r46"],["r46","escutar","gratidao"],["medit","r46","scan"]]},
+  sono:{n:"Sono que descansa",d:"Desacelerar à noite e acordar melhor",w:[["distante","resp3","sono"],["r46","palming","sono"],["scan","r46","sono"]]},
+  olhos:{n:"Olhos de quem estuda",d:"Menos cansaço visual nas horas de tela",w:[["distante","palming","janela"],["distante","palming","agua"],["janela","palming","caminhada"]]},
+  energia:{n:"Energia em movimento",d:"Sair do cansaço com movimento e água",w:[["ativacao","agua","caminhar"],["ativacao","maos","janela"],["along","caminhada","ativacao"]]},
+  natureza:{n:"Reconectar com a natureza",d:"Mais verde e mais presença na rotina",w:[["escutar","janela","caminhar"],["janela","pes","escutar"],["caminhada","pes","floresta"]]},
+  animo:{n:"Mente leve",d:"Cuidar do ânimo com gestos diários",w:[["positivo","gratidao","escutar"],["gratidao","janela","positivo"],["medit","gratidao","caminhada"]]}
+};
+const ANCHORS=["Ao acordar","Depois do café","Ao começar a estudar","Depois de cada aula","No almoço","No fim do expediente","Antes de dormir"];
+function trailDay(){ return S.trail&&S.trail.start?daysBetween(S.trail.start,TODAY)+1:1; }
+function trailIds(){ if(!S.trail||!TRILHAS[S.trail.k]) return []; const w=Math.min(2,Math.floor((Math.min(21,trailDay())-1)/7)); return TRILHAS[S.trail.k].w[w].filter(id=>{const p=byId(id);return p&&allowed(p);}); }
+
+/* ================= perfil → plano personalizado ================= */
+const KW=[
+  [/costas|coluna|pesco|postura|lombar/i,"goal","costas","dor nas costas"],
+  [/ansied|ansios|estress|nervos|preocup|prova/i,"goal","ansiedade","ansiedade"],
+  [/ins[oô]nia|durmo mal|dormir mal|sono ruim|acordo cansad/i,"goal","sono","sono ruim"],
+  [/foco|concentr|distra|estud|curso|aula/i,"goal","foco","foco nos estudos"],
+  [/desanim|sem energia|cansad|sedent|parad|sentad/i,"goal","energia","pouco movimento"],
+  [/natureza|verde|ar livre|planta|jardim/i,"goal","natureza","gosta de natureza"],
+  [/gr[aá]vida|gestante|gesta[cç]/i,"safe","gest","gestação"],
+  [/cora[cç][aã]o|card[ií]a|press[aã]o alta|hipertens/i,"safe","cardio","cuidado cardíaco"],
+  [/les[aã]o|joelho|cirurgia|h[eé]rnia|fisioterapia/i,"safe","lesao","limitação física"],
+  [/olhos|vista|tela/i,"tag",null,"cansaço visual"],
+  [/home office|em casa/i,"place","Casa","trabalha em casa"],
+  [/escrit[oó]rio/i,"place","Escritório","trabalha no escritório"],
+  [/à noite|a noite|de noite/i,"study","noite","estuda à noite"],
+  [/de manh[aã]/i,"study","manha","estuda de manhã"]
+];
+function understand(text){ const out=[]; KW.forEach(([re,k,v,l])=>{ if(re.test(text||"")) out.push({k,v,l}); }); return out; }
+function personalize(){
+  const u=understand(S.profile.texto);
+  u.forEach(x=>{ if(x.k==="goal"&&!S.goals.includes(x.v)) S.goals.push(x.v); if(x.k==="safe") S.safety[x.v]=true; if(x.k==="place") S.profile.lugar=x.v; if(x.k==="study") S.profile.estudo=x.v; });
+  S.plan=buildPlan(); save(); return u;
+}
+const hidden=p=>Object.keys(SAFETY).some(k=>S.safety[k]&&SAFETY[k].hide.includes(p.id));
+const allowed=p=>S.fams.includes(p.fam)&&!hidden(p);
+function score(p){const st=S.stats[p.id]||{s:0,a:0};return (st.a+1)/(st.s+2);}
+function choose(m){
+  if(m.force){const f=byId(m.force); if(f&&allowed(f)) return {p:f,why:m.forceWhy||"prática ligada a este sinal"};}
+  let pool=P.filter(p=>p.size===m.size&&allowed(p)&&!(S.todayDone||[]).slice(-3).includes(p.id));
+  if(!pool.length) pool=P.filter(p=>p.size===m.size&&allowed(p));
+  if(!pool.length) pool=P.filter(allowed);
+  const goalFams=S.goals.flatMap(g=>GOALS[g]?GOALS[g].f:[]);
+  const t=S.today, ckFav=t?(t.tensao==="alta"?"resp":t.energia==="baixa"?"corpo":null):null;
+  const ranked=pool.map(p=>{let v=score(p),r=[];
+    if(p.fam===m.fav){v+=.25;} if(goalFams.includes(p.fam)){v+=.15;r.push("combina com sua meta")} if(trailIds().includes(p.id)){v+=.3;r.push("faz parte da sua trilha")} if(ckFav&&p.fam===ckFav){v+=.2;r.push("combina com seu check-in")}
+    if(!m.det) v+=Math.random()*.3; return {p,v,r};}).sort((a,b)=>b.v-a.v);
+  const top=ranked[0]; const pct=Math.round(score(top.p)*100);
+  return {p:top.p,why:[`aceite estimado ${pct}%`].concat(top.r).join(", ")};
+}
+function buildPlan(){
+  const pr=S.profile, out=[];
+  const add=(t,lbl,size,fav,extra)=>out.push(Object.assign({t,lbl,size,fav},extra||{}));
+  const g=S.goals[0]&&GOALS[S.goals[0]]?GOALS[S.goals[0]].f[0]:"resp";
+  add(plus(pr.acordar,30),"Começo do dia","micro","resp",{pri:3});
+  add(pr.inicio,"Início do expediente","micro",g,{pri:4});
+  add(plus(pr.inicio,110),"Fim de um bloco de foco","curta","corpo",{pri:2});
+  add(plus(pr.inicio,240),"Hora de levantar","curta","corpo",{force:"caminhar",pri:2});
+  add("12:30","Antes do almoço","media","agua",{invite:true,force:"lanche"});
+  add("15:00","Meio da tarde","micro","olhos",{pri:3});
+  add(pr.fim,"Fim do expediente","media","natu",{pri:1});
+  if(pr.estudo&&pr.estudo!=="nao"){const st={manha:"07:30",tarde:"14:00",noite:"19:30"}[pr.estudo]||"19:30"; add(plus(st,50),"Fim da aula","curta","corpo",{pri:1});}
+  (S.reminders||[]).forEach(r=>{ const l=r.l||"", f=/água|agua|beber|fruta/i.test(l)?"agua":/along|corpo|postura|costas|pescoço/i.test(l)?"corpo":/respir|calma|ansied/i.test(l)?"resp":/medit|gratid/i.test(l)?"mente":/olho|vista|tela/i.test(l)?"olhos":/dormir|sono/i.test(l)?"sono":"natu";
+    add(r.t,"Seu momento: "+l,{natu:"media",agua:"micro",sono:"completa"}[f]||"curta",f,{mine:true}); });
+  add(plus(pr.dormir,-60),"Antes de dormir","completa","sono",{invite:true,force:"sono"});
+  const keep=new Set(out.filter(m=>!m.invite&&!m.mine).map((m,i)=>({m,i})).sort((a,b)=>(a.m.pri||5)-(b.m.pri||5)||a.i-b.i).slice(0,S.perDay).map(x=>x.m));
+  const plan=[];
+  out.filter(m=>m.invite||m.mine||keep.has(m)).sort((a,b)=>toMin(a.t)-toMin(b.t)).forEach(m=>{ const c=choose(Object.assign({},m,{det:true})); plan.push({t:m.t,lbl:m.lbl,id:c.p.id,invite:!!m.invite,mine:!!m.mine}); });
+  return plan;
+}
+function planWhy(){
+  const r=[]; S.goals.forEach(g=>{if(GOALS[g]) r.push(`${GOALS[g].n}: mais pausas de ${GOALS[g].f.map(f=>FAM[f].n.toLowerCase()).join(" e ")}.`);});
+  const hid=Object.keys(SAFETY).filter(k=>S.safety[k]); if(hid.length) r.push(`Por segurança, escondi práticas não indicadas para ${hid.map(k=>SAFETY[k].n.toLowerCase()).join(" e ")}.`);
+  r.push(`No máximo ${S.perDay} sugestões por dia, com silêncio a partir das ${S.quietFrom}.`);
+  if(S.profile.estudo&&S.profile.estudo!=="nao") r.push(`Uma pausa ao fim da sua aula da ${({manha:"manhã",tarde:"tarde",noite:"noite"})[S.profile.estudo]}.`);
+  return r;
+}
+if(!S.plan) S.plan=buildPlan();
+
+/* ================= check-in diário ================= */
+const CK=[
+  {k:"humor",q:"Como você está se sentindo hoje?",face:true,o:[[1,"Muito mal"],[2,"Mal"],[3,"Mais ou menos"],[4,"Bem"],[5,"Muito bem"]]},
+  {k:"energia",q:"E a sua energia?",o:[["baixa","Baixa, estou cansado"],["media","Normal"],["alta","Alta, cheio de energia"]]},
+  {k:"tensao",q:"Quanta tensão ou ansiedade você sente?",o:[["baixa","Pouca"],["media","Alguma"],["alta","Muita"]]},
+  {k:"corpo",q:"O corpo está pedindo atenção em algum lugar?",multi:true,o:[["nada","Está tudo bem"],["costas","Costas e pescoço"],["olhos","Olhos cansados"],["cabeca","Cabeça"],["pernas","Pernas paradas"]]},
+  {k:"sono",q:"Como você dormiu esta noite?",o:[["mal","Mal"],["ok","Razoável"],["bem","Bem"]]},
+  {k:"nota",q:"Quer contar mais alguma coisa?",text:true}
+];
+function faceSVG(n){const mouth={1:"M10 24q6-6 12 0",2:"M10 23q6-3 12 0",3:"M10 22h12",4:"M10 21q6 4 12 0",5:"M9 20q7 7 14 0"}[n];
+  return `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="16" cy="16" r="13" fill="${["","#E7B9A6","#EBCFA2","#F1DDA0","#CFE0A8","#A9D3A2"][n]}" stroke="none"/><circle cx="11.5" cy="13" r="1.4" fill="currentColor" stroke="none"/><circle cx="20.5" cy="13" r="1.4" fill="currentColor" stroke="none"/><path d="${mouth}"/></svg>`;}
+function recommend(a){
+  // uma prática por necessidade primeiro (prioridade 1), alternativas depois (2), metas por último (3)
+  const r=[]; const add=(id,w,k=1)=>{const p=byId(id); if(p&&allowed(p)&&!r.find(x=>x.p.id===id)) r.push({p,w,k});};
+  if(a.tensao==="alta"){add("r46","Para baixar a tensão agora");add("medit","Para acalmar a mente com mais tempo",2);}
+  if(a.tensao==="media") add("resp3","Três respirações para soltar o dia");
+  if(a.humor<=2){add("positivo","Um pensamento bom para mudar o tom");add("escutar","Voltar ao presente pelo som",2);add("gratidao","Gratidão ajuda nos dias difíceis",2);}
+  if(a.energia==="baixa"){add("ativacao","Para despertar o corpo");add("agua","Hidratação ajuda na energia",2);add("caminhar","Movimento leve dá ânimo",2);}
+  if(a.energia==="alta"&&a.tensao!=="alta") add("caminhada","Aproveite a energia ao ar livre");
+  const c=a.corpo||[];
+  if(c.includes("costas")){add("pescoco","Para o pescoço e os ombros");add("postura","Ajuste a postura ao longo do dia",2);}
+  if(c.includes("olhos")){add("distante","Descanso para os olhos");add("palming","Escuro e calor para os olhos",2);}
+  if(c.includes("cabeca")){add("mandibula","Soltar a mandíbula alivia a cabeça");add("agua","Um gole de água",2);}
+  if(c.includes("pernas")){add("caminhar","Para as pernas paradas");add("ativacao","Circulação nas pernas",2);}
+  if(a.sono==="mal"){add("sono","Ritual de sono hoje à noite");add("cochilo","Um cochilo curto, se der",2);}
+  if(a.humor>=4) add("janela","Um momento de beleza para manter o bom dia");
+  S.goals.forEach(g=>GOALS[g]&&GOALS[g].f.forEach(f=>{const p=P.find(x=>x.fam===f&&x.size!=="completa"&&allowed(x)); if(p) add(p.id,"Para sua meta: "+GOALS[g].n.toLowerCase(),3);}));
+  return r.map((x,i)=>Object.assign(x,{i})).sort((x,y)=>x.k-y.k||x.i-y.i).slice(0,5);
+}
+const crisisRe=/(n[aã]o aguento|morrer|me matar|sumir|desistir de tudo|acabar com tudo)/i;
+
+/* ================= Raio-X do ANJO: lógica ================= */
+const clamp=(v,a=5,b=100)=>Math.max(a,Math.min(b,Math.round(v)));
+const HRS={"<4":"menos de 4","4-6":"4 a 6","6-8":"6 a 8","8-10":"8 a 10",">10":"mais de 10"};
+function scoreScan(a){
+  const who=a.who5.reduce((s,v)=>s+(v||0),0)*4;
+  const pss=a.pss.reduce((s,v,i)=>s+(PSSQ[i][1]?4-(v||0):(v||0)),0);
+  const sentPen={"6-8":5,"8-10":10,">10":15}[a.sentado]||0;
+  const pains=Object.entries(a.pain).filter(([,v])=>v>0); const maxPain=pains.reduce((m,[,v])=>Math.max(m,v),0);
+  const dims={
+    Corpo:clamp(100-maxPain*6-pains.length*3-({sim:12,asvezes:6}[a.post.cabeca]||0)-({sim:8,asvezes:4}[a.post.ombros]||0)-sentPen),
+    Mente:clamp((who+(16-pss)/16*100)/2),
+    Sono:clamp(({mb:95,b:75,r:40,mr:15}[a.sonoQ]||60)+({"<6":-20,"6-7":-5}[a.sonoH]||0)),
+    Energia:clamp(a.energia*10-sentPen),
+    Natureza:clamp({nada:15,"<1":35,"1-3":65,">3":90}[a.nat]||50)
+  };
+  return {dims,who,pss,maxPain,resp:a.resp};
+}
+function levers(a,r){
+  const L=[], hrs=HRS[a.sentado]||"várias";
+  const back=["pescoco","ombros","costas","lombar"].filter(k=>a.pain[k]>0);
+  if(back.length||a.post.cabeca==="sim"||["8-10",">10"].includes(a.sentado)){
+    const mx=Math.max(0,...back.map(k=>a.pain[k]));
+    L.push({k:"costas",s:100-r.dims.Corpo+mx*3,t:"Soltar pescoço, ombros e costas",
+      why:`${back.length?`Tensão ${mx} de 10 em ${back.map(k=>REG[k].toLowerCase()).join(", ")}`:"Sem dor agora"}, ${hrs} horas sentado por dia${a.post.cabeca==="sim"?" e cabeça projetada à frente":""}.`,
+      plan:"4 pausas de 1 a 2 minutos por dia: pescoço e ombros, postura e levantar para caminhar.",impact:"Pausas curtas e frequentes aliviam a tensão de quem passa horas sentado."});
+  }
+  if(r.pss>=6||(r.resp&&r.resp>18)) L.push({k:"calma",s:r.pss*6+(r.resp>18?15:0),t:"Baixar o estresse",
+    why:`Estresse ${r.pss} de 16 no último mês${r.resp?`, ${r.resp} respirações por minuto em repouso`:""}.`,
+    plan:"Respiração 4–6 ao começar a estudar e antes das provas, e um minuto de pensamento positivo.",impact:"Expirar mais longo do que inspirar ajuda o corpo a relaxar em poucos minutos."});
+  if(r.dims.Sono<70) L.push({k:"sono",s:100-r.dims.Sono,t:"Dormir melhor",why:`Sono ${({mb:"muito bom",b:"bom",r:"ruim",mr:"muito ruim"})[a.sonoQ]}, ${({"<6":"menos de 6","6-7":"6 a 7","7-8":"7 a 8",">8":"mais de 8"})[a.sonoH]} horas por noite.`,plan:"Ritual de sono uma hora antes de deitar, com as telas desligadas.",impact:"Uma rotina fixa antes de dormir ajuda o corpo a desacelerar."});
+  if(a.pain.olhos>0||["6-8","8-10",">10"].includes(a.sentado)) L.push({k:"olhos",s:30+(a.pain.olhos||0)*5,t:"Descansar os olhos",why:a.pain.olhos?`Olhos cansados, ${a.pain.olhos} de 10, com ${hrs} horas de tela.`:`${hrs[0].toUpperCase()+hrs.slice(1)} horas por dia diante de telas.`,plan:"A cada 20 minutos de estudo, 20 segundos olhando para longe.",impact:"Olhar longe relaxa o foco dos olhos e reduz o cansaço visual."});
+  if(r.dims.Energia<60) L.push({k:"energia",s:100-r.dims.Energia,t:"Recuperar a energia",why:`Energia ${a.energia} de 10 nos últimos dias.`,plan:"Um minuto de ativação corporal e um gole de água no meio da manhã e da tarde.",impact:"Movimento rápido e água ajudam a sair do cansaço da tarde."});
+  if(r.dims.Natureza<50) L.push({k:"natureza",s:(100-r.dims.Natureza)*.6,t:"Mais natureza na rotina",why:`${({nada:"Quase nenhum",">3":"Mais de 3 h de","<1":"Menos de 1 h de","1-3":"1 a 3 h de"})[a.nat]} tempo ao ar livre por semana.`,plan:"Janela viva todos os dias e uma caminhada consciente no fim de semana.",impact:"Contato com o verde ajuda a recuperar a atenção."});
+  if(r.who<52) L.push({k:"animo",s:(100-r.who)*1.1,t:"Cuidar do ânimo",why:`Bem-estar ${r.who} de 100 no índice WHO-5.`,plan:"Gratidão escrita à noite e pensamento positivo ao começar o dia.",impact:"Pequenas práticas diárias de gratidão melhoram o humor ao longo das semanas."});
+  return L.sort((x,y)=>y.s-x.s).slice(0,3);
+}
+function flags(r){ const f=[];
+  if(r.who<=28) f.push("Seu bem-estar está bem baixo. Vale conversar com um psicólogo da comunidade EYWA ou de sua confiança. Em sofrimento intenso, ligue 188 (CVV).");
+  if(r.pss>=12) f.push("O estresse está alto. Além das pausas, um profissional pode ajudar.");
+  if(r.maxPain>=7) f.push(`Dor de ${r.maxPain} de 10: procure um fisioterapeuta ou médico antes de práticas mais intensas.`);
+  return f; }
+function pushScan(a,label){ label=label||(S.scans.length?fmtDate(TODAY):"Início");
+  const r=scoreScan(a), lv=levers(a,r);
+  const e={label,date:TODAY,dims:r.dims,who:r.who,pss:r.pss,pain:Object.assign({},a.pain),resp:r.resp,levers:lv,flags:flags(r),a:JSON.parse(JSON.stringify(a))};
+  S.scans.push(e); S.who5.push({w:label,v:r.who}); if(S.who5.length>4) S.who5.splice(1,1);
+  const G={costas:"costas",calma:"ansiedade",sono:"sono",olhos:"foco",energia:"energia",natureza:"natureza",animo:"ansiedade"};
+  lv.forEach(l=>{const g=G[l.k]; if(g&&!S.goals.includes(g)) S.goals.push(g);});
+  S.plan=buildPlan(); save();
+  addLog(nowT,`<b>Raio-X · ${esc(label)}</b> <span class="w">alavancas: ${lv.map(l=>l.t.toLowerCase()).join("; ")||"nenhuma"}. Metas e plano atualizados.</span>`);
+  return e;
+}
+const avgDims=d=>Math.round(Object.values(d).reduce((x,y)=>x+y,0)/5);
+function radar(cur,prev){
+  const keys=["Corpo","Mente","Sono","Energia","Natureza"], c=120, R=80;
+  const pt=(i,v)=>{const g=-Math.PI/2+i*2*Math.PI/5;return [(c+Math.cos(g)*R*v/100).toFixed(1),(c+Math.sin(g)*R*v/100).toFixed(1)];};
+  let s=`<svg class="radar" viewBox="-40 0 320 240" width="100%" style="max-width:320px" role="img" aria-label="Mapa de bem-estar: ${keys.map(k=>k+" "+cur[k]).join(", ")}">`;
+  [25,50,75,100].forEach(l=>{s+=`<polygon points="${keys.map((k,i)=>pt(i,l).join(",")).join(" ")}" fill="none" stroke="currentColor" stroke-opacity=".15"/>`;});
+  keys.forEach((k,i)=>{const [x,y]=pt(i,100);s+=`<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="currentColor" stroke-opacity=".15"/>`;const [lx,ly]=pt(i,124);s+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${k} ${cur[k]}</text>`;});
+  if(prev) s+=`<polygon points="${keys.map((k,i)=>pt(i,prev[k]).join(",")).join(" ")}" fill="none" stroke="currentColor" stroke-opacity=".6" stroke-dasharray="4 4" stroke-width="1.5"/>`;
+  s+=`<polygon points="${keys.map((k,i)=>pt(i,cur[k]).join(",")).join(" ")}" fill="#D6A558" fill-opacity=".35" stroke="#D6A558" stroke-width="2.5" stroke-linejoin="round"/>`;
+  keys.forEach((k,i)=>{const [x,y]=pt(i,cur[k]);s+=`<circle cx="${x}" cy="${y}" r="4" fill="#D6A558"/>`;});
+  return s+`</svg>`;
+}
+function bodyMap(pain,interactive){
+  const at=v=>v>=9?'fill="#C9553A"':v>=6?'fill="#E39B5B"':v>=3?'fill="#F1D08F"':'fill="currentColor" fill-opacity=".08"';
+  const R=(k,shape)=>`<g class="reg" data-reg="${k}" ${interactive?`role="button" tabindex="0" aria-label="${REG[k]}: ${pain[k]||0} de 10"`:""}>${shape.replace(/FA/g,at(pain[k]||0))}</g>`;
+  return `<svg class="bodymap" viewBox="0 0 200 320" width="100%" style="max-width:${interactive?210:150}px" role="img" aria-label="Mapa do corpo">
+   <g stroke="currentColor" stroke-opacity=".4" stroke-width="1.5">
+   <path d="M62 94 L42 184 M138 94 L158 184" stroke-width="9" stroke-linecap="round" stroke-opacity=".14"/>
+   ${R("cabeca",'<circle cx="100" cy="36" r="22" FA/>')}
+   ${R("pescoco",'<rect x="90" y="58" width="20" height="18" rx="5" FA/>')}
+   ${R("ombros",'<ellipse cx="70" cy="86" rx="18" ry="10" FA/><ellipse cx="130" cy="86" rx="18" ry="10" FA/>')}
+   ${R("costas",'<rect x="74" y="94" width="52" height="50" rx="10" FA/>')}
+   ${R("lombar",'<rect x="78" y="146" width="44" height="32" rx="8" FA/>')}
+   ${R("quadril",'<rect x="76" y="180" width="48" height="24" rx="8" FA/>')}
+   ${R("maos",'<circle cx="40" cy="196" r="11" FA/><circle cx="160" cy="196" r="11" FA/>')}
+   ${R("pernas",'<rect x="78" y="208" width="19" height="96" rx="9" FA/><rect x="103" y="208" width="19" height="96" rx="9" FA/>')}
+   </g></svg>`;
+}
+const postureFig=()=>`<svg viewBox="0 0 200 280" width="170" height="240" aria-hidden="true"><g fill="none" stroke="rgba(244,228,196,.5)" stroke-width="10" stroke-linecap="round"><path d="M96 92C92 130 94 170 100 200"/><path d="M100 200L96 268"/><path d="M98 110C112 130 122 150 128 170"/></g><circle cx="112" cy="66" r="22" fill="rgba(244,228,196,.5)"/><path d="M96 34V236" stroke="#F1D08F" stroke-opacity=".5" stroke-dasharray="3 5"/><path d="M118 66L96 100L100 200" stroke="#5FE0A8" stroke-width="2" stroke-dasharray="4 4" fill="none"/><g fill="#5FE0A8"><circle cx="118" cy="66" r="5"/><circle cx="96" cy="100" r="5"/><circle cx="100" cy="200" r="5"/></g></svg>`;
+const scanIcon=()=>`<svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#F1D08F" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 12V6a2 2 0 0 1 2-2h6M32 4h6a2 2 0 0 1 2 2v6M40 32v6a2 2 0 0 1-2 2h-6M12 40H6a2 2 0 0 1-2-2v-6"/><circle cx="22" cy="15" r="4"/><path d="M14 33c1-6 4-9 8-9s7 3 8 9"/><path d="M8 22h28" stroke="#5FE0A8"/></svg>`;
+function deltas(p,c){
+  const row=(lbl,a,b,goodUp,unit="")=>{const d=b-a, good=goodUp?d>=0:d<=0;return `<div class="delta"><span>${lbl}</span><span class="meta">${a}${unit} → ${b}${unit}</span><b class="${good?"up":"down"}">${d>0?"+":""}${d}</b></div>`;};
+  let h=Object.keys(c.dims).map(k=>row(k,p.dims[k],c.dims[k],true)).join("");
+  h+=row("Bem-estar (WHO-5)",p.who,c.who,true)+row("Estresse (PSS-4, de 16)",p.pss,c.pss,false);
+  if(p.resp&&c.resp) h+=row("Respirações por minuto",p.resp,c.resp,false);
+  [...new Set(Object.keys(p.pain).concat(Object.keys(c.pain)))].filter(k=>(p.pain[k]||0)+(c.pain[k]||0)>0).forEach(k=>{h+=row("Dor: "+REG[k].toLowerCase(),p.pain[k]||0,c.pain[k]||0,false);});
+  return h;
+}
+function leverHTML(l,i){ const T=TRILHAS[l.k], active=S.trail&&S.trail.k===l.k;
+  return `<div class="lv"><span class="n">${i+1}ª alavanca</span><h3>${esc(l.t)}</h3><p><b>Por quê:</b> ${esc(l.why)}</p><p><b>Plano:</b> ${esc(l.plan)}</p><p class="meta">${esc(l.impact)}</p>
+   ${active?`<span class="badge" style="margin-top:8px;display:inline-block">Trilha em andamento · dia ${Math.min(21,trailDay())}</span>`:`<button class="btn ${i===0?"gold":"ghost"} small" style="margin-top:8px" data-trail="${l.k}">Começar ${esc(T.n)} · 21 dias</button>`}</div>`; }
+
+let scan=null, scanTimers=[];
+const SCAN_Q=7, PO=[["sim","Sim, quase sempre"],["asvezes","Às vezes"],["nao","Não"]];
+function openScan(){ notif=null; renderNotif(); scan={i:0,a:{who5:[null,null,null,null,null],pss:[null,null,null,null],sonoQ:null,sonoH:null,energia:5,sentado:null,nat:null,pain:{},resp:null,post:{}},br:null,anim:false}; drawScan(); }
+function closeScan(){ if(scan&&scan.br) clearInterval(scan.br.timer); scanTimers.forEach(clearTimeout); scanTimers=[]; scan=null; drawScan(); render(); }
+function scanNext(){
+  const s=scan; if(s.i===6&&s.br&&!s.br.done){clearInterval(s.br.timer); s.br=null;}
+  s.i++;
+  if(s.i===7){ s.anim=true; drawScan(); scanTimers.push(setTimeout(()=>{ if(scan&&scan.i===7){scan.anim=false;drawScan();} },3200)); return; }
+  if(s.i===8){ drawScan(); scanTimers.push(setTimeout(()=>{ if(scan&&scan.i===8){ pushScan(scan.a); S.seeds+=3; save(); scan.i=9; drawScan(); Music.chime(); } },2700)); return; }
+  drawScan();
+}
+function brTap(){ const s=scan; if(s.br&&s.br.done) return;
+  if(!s.br){ s.br={left:30,count:1,done:false}; s.br.timer=setInterval(()=>{ const b=scan&&scan.br; if(!b) return; b.left--; const L=$("#brL"); if(L) L.textContent=b.left+" s";
+      if(b.left<=0){ clearInterval(b.timer); b.done=true; scan.a.resp=b.count*2; drawScan(); } },1000); drawScan(); return; }
+  s.br.count++; const C=$("#brC"); if(C) C.textContent=s.br.count+" inspirações"; }
+function drawScan(){
+  let el=$("#phone .overlay.sc"); if(!scan){ if(el) el.remove(); return; }
+  if(!el){el=document.createElement("div");el.className="overlay immersive sc";el.setAttribute("role","dialog");el.setAttribute("aria-label","Raio-X do ANJO");$("#phone").appendChild(el);}
+  const a=scan.a, i=scan.i, keep=el.dataset.step===String(i)?el.scrollTop:0;
+  const top=`<div class="ov-top"><span class="eyebrow">Raio-X do ANJO${i>=1&&i<=7?` · ${i} de ${SCAN_Q}`:""}</span><button class="iconbtn" data-scclose aria-label="Fechar">${icon("x")}</button></div>${i>=1&&i<=7?`<div class="prog">${Array.from({length:SCAN_Q},(_,k)=>`<i class="${k<i?"on":""}"></i>`).join("")}</div>`:""}`;
+  const nav=(ok,label)=>`<div class="foot"><button class="btn gold" data-scnext ${ok?"":"disabled"}>${label||"Continuar"}</button>${i>1&&i<=7?`<button class="btn ghost" data-scback>Voltar</button>`:""}</div>`;
+  const chips=(arr,key,cur)=>`<div class="chips">${arr.map(([v,l])=>`<button class="chip" data-${key}="${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</div>`;
+  let h="";
+  if(i===0) h=`<div class="scanfig"><div class="grid"></div>${anjoLogo(130)}<div class="line"></div></div>
+    <h1 style="font-size:26px">Raio-X do ANJO</h1><p style="font-size:14.5px;color:var(--muted)">Em 3 minutos, um mapa do seu bem-estar e as 3 mudanças que mais vão melhorar o seu dia.</p>
+    <ul class="promise"><li>Bem-estar, estresse, sono, energia, corpo, respiração e postura.</li><li>Questionários validados e testes simples. Não é diagnóstico médico.</li><li>As respostas ficam no seu aparelho. Refaça a cada 2 semanas e veja sua evolução.</li></ul>${nav(true,"Começar · +3 sementes")}`;
+  if(i===1) h=`<h1 style="font-size:21px">Nas últimas duas semanas…</h1><p class="meta" style="margin-top:-6px">0 = nunca · 5 = o tempo todo</p>`+WHOQ.map((q,k)=>`<div><q class="sq">${q}</q><div class="scale">${[0,1,2,3,4,5].map(v=>`<button data-sw="${k}:${v}" aria-pressed="${a.who5[k]===v}">${v}</button>`).join("")}</div></div>`).join("")+nav(a.who5.every(v=>v!=null));
+  if(i===2) h=`<h1 style="font-size:21px">No último mês…</h1><p class="meta" style="margin-top:-6px">0 = nunca · 4 = muito frequentemente</p>`+PSSQ.map(([q],k)=>`<div><q class="sq">${q}</q><div class="scale" style="grid-template-columns:repeat(5,1fr)">${[0,1,2,3,4].map(v=>`<button data-sp="${k}:${v}" aria-pressed="${a.pss[k]===v}" title="${PSSS[v]}">${v}</button>`).join("")}</div></div>`).join("")+nav(a.pss.every(v=>v!=null));
+  if(i===3) h=`<h1 style="font-size:21px">Seu sono no último mês</h1><div class="opts">${[["mb","Muito bom"],["b","Bom"],["r","Ruim"],["mr","Muito ruim"]].map(([v,l])=>`<button class="opt" data-sq="${v}" aria-pressed="${a.sonoQ===v}">${l}</button>`).join("")}</div>
+    <div class="field"><label>Quantas horas por noite, em média?</label>${chips([["<6","Menos de 6"],["6-7","6 a 7"],["7-8","7 a 8"],[">8","Mais de 8"]],"sh",a.sonoH)}</div>`+nav(a.sonoQ&&a.sonoH);
+  if(i===4) h=`<h1 style="font-size:21px">Energia e rotina</h1>
+    <div class="field"><label for="scEn">Sua energia nos últimos dias: <b id="scEnV">${a.energia}</b> de 10</label><input type="range" id="scEn" min="0" max="10" value="${a.energia}" style="width:100%"></div>
+    <div class="field"><label>Horas sentado por dia (estudo, trabalho e celular)</label>${chips([["<4","Menos de 4"],["4-6","4 a 6"],["6-8","6 a 8"],["8-10","8 a 10"],[">10","Mais de 10"]],"ss",a.sentado)}</div>
+    <div class="field"><label>Tempo ao ar livre ou na natureza por semana</label>${chips([["nada","Quase nada"],["<1","Menos de 1 h"],["1-3","1 a 3 h"],[">3","Mais de 3 h"]],"sn",a.nat)}</div>`+nav(a.sentado&&a.nat);
+  if(i===5){ const sel=Object.entries(a.pain).filter(([,v])=>v>0);
+    h=`<h1 style="font-size:21px">Onde o corpo pede atenção?</h1><p class="meta" style="margin-top:-6px">Toque na região. Cada toque aumenta a intensidade: leve, média, forte.</p>
+    <div style="display:grid;place-items:center;color:var(--ink)">${bodyMap(a.pain,true)}</div>
+    <div class="chips" style="justify-content:center">${["olhos","mandibula"].map(k=>`<button class="chip" data-reg="${k}" aria-pressed="${(a.pain[k]||0)>0}">${REG[k]}${a.pain[k]?` · ${a.pain[k]}/10`:""}</button>`).join("")}</div>
+    <div class="legend" style="justify-content:center"><span><i style="background:#F1D08F"></i>leve (3)</span><span><i style="background:#E39B5B"></i>média (6)</span><span><i style="background:#C9553A"></i>forte (9)</span></div>
+    <p class="meta" style="text-align:center">${sel.length?sel.map(([k,v])=>`${REG[k]} ${v}/10`).join(" · "):"Nada marcado. Se estiver tudo bem, é só continuar."}</p>`+nav(true); }
+  if(i===6){ const br=scan.br;
+    h=`<h1 style="font-size:21px">Teste de respiração · 30 s</h1><p class="meta" style="margin-top:-6px">Sente-se e respire normalmente. Toque no círculo cada vez que inspirar.</p>
+    <button class="tapbig" data-brtap>${br&&br.done?`<span><b style="font-size:34px;font-family:var(--f-display)">${a.resp}</b><br>respirações por minuto</span>`:br?`<span><b id="brL" style="font-size:34px;font-family:var(--f-display)">${br.left} s</b><br><span id="brC">${br.count} inspirações</span></span>`:`<span>Toque para começar<br>e a cada inspiração</span>`}</button>
+    ${br&&br.done?`<p class="meta" style="text-align:center">Em repouso, o comum é de 12 a 20 por minuto.${a.resp>20?" O seu está acelerado: a respiração lenta vai ajudar.":""}</p>`:""}`+nav(true,br&&br.done?"Continuar":"Pular teste"); }
+  if(i===7){
+    if(scan.anim) h=`<h1 style="font-size:21px">Leitura de postura</h1><div class="scanfig" style="min-height:280px"><div class="grid"></div>${postureFig()}<div class="line"></div></div><p class="meta" style="text-align:center">Demonstração: no app, a câmera do celular faz esta leitura no próprio aparelho, sem salvar a imagem.</p>`;
+    else h=`<h1 style="font-size:21px">Leitura de postura</h1><p class="meta" style="margin-top:-6px">Demonstração concluída. Confirme como você costuma ficar ao estudar:</p>
+    <div class="field"><label>A cabeça vai para a frente, perto da tela?</label>${chips(PO,"spost-c",a.post.cabeca)}</div>
+    <div class="field"><label>Os ombros ficam tensos ou sobem?</label>${chips(PO,"spost-o",a.post.ombros)}</div>`+nav(a.post.cabeca&&a.post.ombros,"Analisar meu Raio-X");
+  }
+  if(i===8) h=`<div class="scanfig" style="margin-top:20px"><div class="grid"></div>${anjoLogo(120)}<div class="line"></div></div><h1 style="font-size:22px;text-align:center">Analisando seu Raio-X</h1>
+    <ul class="anl">${["Bem-estar (WHO-5)","Estresse (PSS-4)","Sono e energia","Mapa do corpo","Respiração e postura","Montando suas 3 alavancas"].map((t,k)=>`<li style="animation-delay:${k*.38}s">${t}</li>`).join("")}</ul>`;
+  if(i===9){ const cur=S.scans[S.scans.length-1], prev=S.scans.length>1?S.scans[S.scans.length-2]:null;
+    h=`<div><div class="eyebrow">Resultado · ${esc(cur.label)}</div><h1 style="font-size:24px;margin-top:4px">Seu mapa de bem-estar</h1></div>
+    <div style="display:grid;place-items:center;color:var(--ink)">${radar(cur.dims,prev&&prev.dims)}${prev?`<div class="legend"><span><i style="background:#D6A558"></i>${esc(cur.label)}</span><span><i style="border:1.5px dashed currentColor"></i>${esc(prev.label)}</span></div>`:""}</div>
+    ${prev?`<div class="lv"><div class="eyebrow" style="margin-bottom:4px">Antes e agora</div>${deltas(prev,cur)}</div>`:""}
+    ${cur.flags.map(f=>`<div class="crisis">${esc(f)}</div>`).join("")}
+    <h3 style="font-size:17px">As 3 mudanças que mais vão melhorar seu dia</h3>
+    ${cur.levers.length?cur.levers.map((l,k)=>leverHTML(l,k)).join(""):`<p>Seu mapa está equilibrado. Mantenha o ritmo das pausas.</p>`}
+    <p class="note">O Raio-X mede bem-estar e hábitos com questionários validados (WHO-5 e PSS-4) e testes simples. Não é diagnóstico médico. Refaça em 2 semanas para ver sua evolução.</p>
+    <div class="foot"><button class="btn ghost" data-scclose>Fechar</button></div>`; }
+  if(i===10){ const T=TRILHAS[scan.pick];
+    h=`<div><div class="eyebrow">Trilha de 21 dias</div><h1 style="font-size:24px;margin-top:4px">${esc(T.n)}</h1><p class="meta" style="margin-top:4px">${esc(T.d)}. Duas a três práticas por dia, um pouco mais longas a cada semana.</p></div>
+    <div class="field"><label>Quando encaixar as práticas? Ligar a um hábito que você já tem ajuda a não esquecer.</label><div class="opts">${ANCHORS.map(x=>`<button class="opt" data-anchor="${x}" aria-pressed="${scan.anchor===x}">${x}</button>`).join("")}</div></div>
+    <div class="foot"><button class="btn gold" data-trailstart ${scan.anchor?"":"disabled"}>Começar trilha</button>${S.scans.length?`<button class="btn ghost" data-trailback>Voltar ao resultado</button>`:""}</div>`; }
+  el.innerHTML=`<div class="scw">${top}${h}</div>`; el.dataset.step=String(i); el.scrollTop=keep;
+  const en=$("#scEn"); if(en) en.oninput=e=>{a.energia=+e.target.value; $("#scEnV").textContent=a.energia;};
+}
+function startTrail(){ S.trail={k:scan.pick,start:TODAY,anchor:scan.anchor}; S.plan=buildPlan(); save(); addLog(nowT,`<b>Trilha iniciada</b> <span class="w">${esc(TRILHAS[scan.pick].n)}, ${esc(scan.anchor.toLowerCase())}; as práticas da trilha ganham prioridade.</span>`); const n=TRILHAS[scan.pick].n; closeScan(); tab="hoje"; render(); $("#scr").scrollTop=0; toast("Trilha "+n+" começou"); }
+function trailCard(){
+  const last=S.scans[S.scans.length-1], gap=last&&last.date?daysBetween(last.date,TODAY):0;
+  const due=gap>=14?`<button class="xcard" data-scan>${scanIcon()}<span><b>Hora do seu novo Raio-X</b><span class="meta">Já se passaram ${gap} dias. Veja o que mudou no corpo e na mente.</span></span><span class="arrow">›</span></button>`:"";
+  if(!S.scans.length) return `<button class="xcard" data-scan>${scanIcon()}<span><b>Faça seu Raio-X do ANJO</b><span class="meta">3 minutos para ver seu mapa de bem-estar e o que mais vai melhorar seu dia</span></span><span class="arrow">›</span></button>`;
+  if(!S.trail) return due||`<button class="xcard" data-go="raiox">${scanIcon()}<span><b>Seu Raio-X está pronto</b><span class="meta">Escolha a trilha de 21 dias que mais vai mudar seu dia</span></span><span class="arrow">›</span></button>`;
+  const T=TRILHAS[S.trail.k], day=trailDay();
+  if(day>21) return due+`<div class="card"><div class="eyebrow">Trilha concluída</div><b style="font-family:var(--f-display);font-size:16px">${esc(T.n)} · 21 dias</b><p class="meta" style="margin-top:6px">Parabéns. Refaça o Raio-X para ver o que mudou e escolher a próxima trilha.</p><div class="row" style="margin-top:10px"><button class="btn gold small" data-scan>Refazer Raio-X</button><button class="btn ghost small" data-endtrail>Encerrar trilha</button></div></div>`;
+  const ids=trailIds(), done=ids.filter(id=>S.todayDone.includes(id)).length, all=ids.length&&done===ids.length;
+  return due+`<div class="card"><div class="between"><div><div class="eyebrow">Trilha · dia ${day} de 21</div><b style="font-family:var(--f-display);font-size:16px">${esc(T.n)}</b></div><span class="badge">${done}/${ids.length} hoje</span></div>
+   <div class="dots21" aria-label="Dia ${day} de 21">${Array.from({length:21},(_,k)=>`<i class="${k<day-1?"on":k===day-1?"now":""}"></i>`).join("")}</div>
+   <div class="meta">Encaixe: ${esc(S.trail.anchor.toLowerCase())}</div>
+   <div class="stack" style="gap:8px;margin-top:10px">${ids.map(id=>{const p=byId(id),ok=S.todayDone.includes(id);return `<button class="prac" data-start="${id}"><span class="th">${illo(p)}</span><span><b>${esc(p.name)}</b><small>${fmt(p.sec)} · ${FAM[p.fam].n}</small></span><span class="check ${ok?"ok":""}">${ok?"✓":""}</span></button>`;}).join("")}</div>
+   ${all?`<p style="margin-top:10px;color:var(--forest);font-weight:800">Dia concluído. Amanhã tem mais.</p>`:""}</div>`;
+}
+function raioxHTML(){
+  if(!S.scans.length) return `<div class="stack"><button class="xcard" data-scan>${scanIcon()}<span><b>Faça seu primeiro Raio-X</b><span class="meta">Bem-estar, estresse, sono, energia, corpo, respiração e postura em 3 minutos</span></span><span class="arrow">›</span></button><p class="note">Não é diagnóstico médico. As respostas ficam no seu aparelho.</p></div>`;
+  const cur=S.scans[S.scans.length-1], prev=S.scans.length>1?S.scans[S.scans.length-2]:null;
+  return `<div class="stack">
+   <div class="card" style="display:grid;place-items:center">${radar(cur.dims,prev&&prev.dims)}${prev?`<div class="legend"><span><i style="background:#D6A558"></i>${esc(cur.label)}</span><span><i style="border:1.5px dashed currentColor"></i>${esc(prev.label)}</span></div>`:""}</div>
+   ${prev?`<div class="card"><div class="eyebrow" style="margin-bottom:4px">Antes e agora</div>${deltas(prev,cur)}</div>`:""}
+   ${cur.flags.map(f=>`<div class="crisis">${esc(f)}</div>`).join("")}
+   <div class="eyebrow" style="margin-top:4px">Suas 3 alavancas</div>${cur.levers.map((l,k)=>leverHTML(l,k)).join("")}
+   <div class="card" style="display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center"><div style="width:90px;color:var(--ink)">${bodyMap(cur.pain,false)}</div><div><div class="eyebrow">Corpo no último Raio-X</div><p class="meta" style="margin-top:4px">${Object.entries(cur.pain).filter(([,v])=>v>0).map(([k,v])=>`${REG[k]} ${v}/10`).join(" · ")||"Sem dor marcada"}</p>${cur.resp?`<p class="meta">${cur.resp} respirações por minuto</p>`:""}</div></div>
+   <button class="btn gold block" data-scan>Refazer Raio-X</button>
+   <div class="card"><div class="eyebrow" style="margin-bottom:4px">Histórico</div>${S.scans.slice().reverse().map(s=>`<div class="delta"><span>${esc(s.label)}</span><span class="meta">média do mapa</span><b>${avgDims(s.dims)}</b></div>`).join("")}</div>
+   <p class="note">O Raio-X mede bem-estar e hábitos com questionários validados (WHO-5 e PSS-4) e testes simples. Não é diagnóstico médico.</p></div>`;
+}
+
+/* ================= render: navegação ================= */
+const ICONS={
+  hoje:'<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/>',
+  explorar:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  arvore:'<path d="M12 21v-7"/><path d="M12 14c-4 0-6-3-6-6a6 6 0 0 1 12 0c0 3-2 6-6 6z"/>',
+  conversa:'<path d="M4 5h16v11H9l-5 4z"/>',
+  perfil:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>'
+};
+const TABN={hoje:"Hoje",explorar:"Explorar",arvore:"Jornada",conversa:"Conversa",perfil:"Perfil"};
+function renderTabs(){
+  $("#tabs").hidden=onbStep>=0;
+  $("#tabs").innerHTML=Object.keys(TABN).map(k=>`<button data-tab="${k}" ${k===tab?'aria-current="page"':""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>${TABN[k]}</button>`).join("");
+}
+function render(){
+  renderTabs(); $("#composeSlot").innerHTML="";
+  if(onbStep>=0) return renderOnb();
+  ({hoje:renderHoje,explorar:renderExplorar,arvore:renderArvore,conversa:renderConversa,perfil:renderPerfil})[tab]();
+}
+function toast(t){const p=$("#phone");let el=p.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";p.appendChild(el);}el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;},2400);}
+const pracRow=(p,why)=>`<button class="prac" data-start="${p.id}"><span class="th">${illo(p)}</span><span><b>${esc(p.name)}</b><small>${why?esc(why):FAM[p.fam].d+" · "+FAM[p.fam].n}${p.warn?" · com cuidados":""}</small></span><span class="dur">${fmt(p.sec)}</span></button>`;
+
+/* ================= Hoje ================= */
+function greeting(){
+  const h=toMin(nowT)/60; const part=h<12?"Bom dia":h<18?"Boa tarde":"Boa noite";
+  const t=S.today;
+  if(!t) return `${part}${S.name?", "+esc(S.name):""}. Como você está hoje? Seu check-in me ajuda a escolher as pausas certas.`;
+  if(t.tensao==="alta") return `${part}${S.name?", "+esc(S.name):""}. Hoje vou priorizar respiração e calma. Estou por perto.`;
+  if(t.energia==="baixa") return `${part}${S.name?", "+esc(S.name):""}. Energia baixa hoje: pausas curtas de movimento vão ajudar.`;
+  if(t.humor>=4) return `${part}${S.name?", "+esc(S.name):""}. Que bom que está bem. Vamos manter esse ritmo.`;
+  return `${part}${S.name?", "+esc(S.name):""}. Seu dia está planejado. Apareço só na hora certa.`;
+}
+function renderHoje(){
+  const now=toMin(nowT);
+  const nx=S.plan.find(m=>toMin(m.t)>now&&!m.invite)||S.plan.find(m=>!m.invite);
+  const np=byId(nx.id); const doneN=S.todayDone.length, goal=S.perDay, c=2*Math.PI*30, k=Math.min(1,doneN/goal);
+  const focusing=!!S.focusStart;
+  const recs=S.today?recommend(S.today):[];
+  $("#scr").innerHTML=`
+  <div class="appbar">${brand(36)}<button class="pill" data-tab="arvore">${S.seeds} ${S.seeds===1?"semente":"sementes"}</button></div>
+  <div class="stack">
+    <section class="hero" aria-label="Seu dia com o ANJO">
+      <div class="top">${anjo(58)}<div class="bubble">${greeting()}</div></div>
+      <div class="next">
+        <div class="ringsm"><svg viewBox="0 0 74 74"><circle cx="37" cy="37" r="30" fill="none" stroke="rgba(244,228,196,.18)" stroke-width="7"/><circle cx="37" cy="37" r="30" fill="none" stroke="#D6A558" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-k)}"/></svg><b>${doneN}/${goal}<small>pausas</small></b></div>
+        <div><div class="eyebrow">Próxima pausa · ${toMin(nx.t)>now?nx.t:"amanhã, "+nx.t}</div><h2>${esc(np.name)}</h2><div class="meta">${esc(nx.lbl)} · ${fmt(np.sec)}</div>
+          <div class="row" style="margin-top:10px"><button class="btn gold small" data-start="${np.id}">Fazer agora</button><button class="btn ghost small" data-tab="explorar">Trocar</button></div></div>
+      </div>
+    </section>
+    ${trailCard()}
+    ${S.today?`<div class="card"><div class="between"><div><div class="eyebrow">Check-in de hoje</div><b style="font-family:var(--f-display)">${CK[0].o[S.today.humor-1][1]} · energia ${({baixa:"baixa",media:"normal",alta:"alta"})[S.today.energia]}</b></div><button class="link" data-ck>Refazer</button></div>
+      <div class="meta" style="margin-top:6px">Práticas indicadas para você hoje</div><div class="recs">${recs.slice(0,3).map(r=>pracRow(r.p,r.w)).join("")}</div></div>`
+    :`<button class="card ck-card nowbtn" data-ck style="background:var(--card)">${faceSVG(4)}<span><b>Check-in de hoje</b><span class="meta">Conte como está. O ANJO indica as práticas certas. +1 semente</span></span><span class="arrow">›</span></button>`}
+    <button class="nowbtn" data-now>${anjoLogo(40)}<span><b>Preciso de uma pausa agora</b><span class="meta">O ANJO escolhe pelo seu momento</span></span><span class="arrow">›</span></button>
+    <div class="card">
+      <div class="between"><div><div class="eyebrow">Sessão de estudo</div><div class="meta">${focusing?"Em foco. O ANJO sugere a pausa ao fim.":"Hoje: "+dayRec().f+" min de foco"}</div></div>
+      ${focusing?`<button class="btn ghost small" data-focus>Encerrar</button>`:`<div class="row"><button class="chip" data-flen="25" aria-pressed="${S.focusLen===25}">25</button><button class="chip" data-flen="50" aria-pressed="${S.focusLen===50}">50 min</button></div>`}</div>
+      ${focusing?`<div class="focus-bar"><i id="fbar"></i></div><div class="meta" style="margin-top:6px" id="fleft"></div>`:`<button class="btn green small block" style="margin-top:10px" data-focus>Começar a estudar</button>`}
+    </div>
+    <div class="card">
+      <div class="between" style="margin-bottom:6px"><div class="eyebrow">Seu plano de hoje</div><button class="link" data-tab="perfil">Ajustar</button></div>
+      <ul class="tl">${S.plan.map(m=>{const p=byId(m.id);const done=toMin(m.t)<=now;return `<li class="${done?"done":""} ${m.invite?"inv":""}"><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}${m.invite?" · convite":""}</b><span>${esc(m.lbl)} · ${fmt(p.sec)}</span></div></li>`;}).join("")}</ul>
+      <div class="meta" style="margin-top:6px">Montado a partir do seu perfil. Linhas tracejadas são convites, sem cobrança.</div>
+    </div>
+  </div>`;
+  if(focusing) runFocus();
+}
+let focusTimer=null;
+function runFocus(){ clearInterval(focusTimer); const step=()=>{
+  if(!S.focusStart){clearInterval(focusTimer);return;} const tot=S.focusLen*60000, el=Date.now()-S.focusStart, k=Math.min(1,el/tot);
+  const b=$("#fbar"); if(b) b.style.width=(k*100)+"%"; const f=$("#fleft"); if(f) f.textContent=`Faltam ${Math.max(1,Math.ceil((tot-el)/60000))} min. Pode deixar o app em segundo plano.`;
+  if(k>=1){clearInterval(focusTimer); endFocus();} }; step(); focusTimer=setInterval(step,1000); }
+
+/* ================= Explorar ================= */
+function renderExplorar(){
+  const fams=["todas"].concat(Object.keys(FAM)); const nHidden=P.filter(hidden).length;
+  const feat=P.find(p=>p.size==="completa"&&allowed(p)&&p.id!=="sono")||P[0];
+  $("#scr").innerHTML=`<h1 style="font-size:24px;margin:6px 0 4px">Explorar</h1>
+  <p class="meta" style="margin:0 0 12px">${P.length} práticas narradas, com imagem e música, curadas pela EYWA.</p>
+  <div class="search" style="margin-bottom:10px"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="text" id="q" placeholder="Buscar prática" value="${esc(q)}" aria-label="Buscar prática"></div>
+  <div class="seg">${fams.map(f=>`<button class="chip" data-filt="${f}" aria-pressed="${filt===f}">${f==="todas"?"Todas":FAM[f].n}</button>`).join("")}</div>
+  <div id="xlist"></div>
+  ${nHidden?`<p class="note" style="margin-top:12px">${nHidden} práticas ocultas pelas suas respostas de segurança. Dá para revisar no Perfil.</p>`:""}`;
+  const list=()=>{
+    const items=P.filter(p=>allowed(p)&&(filt==="todas"||p.fam===filt)&&(!q||p.name.toLowerCase().includes(q.toLowerCase())));
+    $("#xlist").innerHTML=(filt==="todas"&&!q?`<div class="sec-h"><h3>Convite da semana</h3><span class="badge">+5 sementes</span></div>
+      <button class="feature" data-start="${feat.id}">${illo(feat)}<div><b style="font-family:var(--f-display);font-size:16px">${esc(feat.name)}</b><div class="meta">${fmt(feat.sec)} · escolha voluntária, quando tiver tempo e lugar</div></div></button>`:"")+
+      Object.keys(SIZE).map(sz=>{const it=items.filter(p=>p.size===sz); if(!it.length) return "";
+      return `<div class="sec-h"><h3>${SIZE[sz].n}</h3><span class="badge">${SIZE[sz].r} · +${SIZE[sz].seeds}</span></div>
+      ${sz==="completa"?`<p class="meta" style="margin:-2px 0 8px">Aparecem só para quem escolhe. Nunca como alerta.</p>`:""}
+      <div class="stack" style="gap:8px">${it.map(p=>pracRow(p)).join("")}</div>`;}).join("")||`<p class="meta" style="margin-top:14px">Nenhuma prática encontrada.</p>`;
+  };
+  list(); $("#q").addEventListener("input",e=>{q=e.target.value;list();});
+}
+
+/* ================= Árvore / Progresso / Impacto ================= */
+function renderArvore(){
+  const head=`<h1 style="font-size:24px;margin:6px 0 12px">Minha jornada</h1><div class="segtabs">${[["arvore","Árvore"],["raiox","Raio-X"],["progresso","Progresso"],["impacto","Impacto"]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${sub===k}">${l}</button>`).join("")}</div>`;
+  if(sub==="arvore") return $("#scr").innerHTML=head+arvoreHTML();
+  if(sub==="raiox") return $("#scr").innerHTML=head+raioxHTML();
+  if(sub==="progresso") return $("#scr").innerHTML=head+progressoHTML();
+  $("#scr").innerHTML=head+impactoHTML();
+}
+function arvoreHTML(){
+  const si=stageIdx(S.seeds), nxt=STAGES[si+1], fi=formIdx(S.done);
+  return `<div class="tree-box">${treeSVG(si)}</div>
+  <div class="stages">${STAGES.map((s,i)=>`<span class="${i<=si?"on":""}">${s[0]}</span>`).join("")}</div>
+  <div class="stack" style="margin-top:14px">
+    <div class="stats"><div class="card stat"><b>${S.seeds}</b><span>sementes</span></div><div class="card stat"><b>${nxt?nxt[1]-S.seeds:0}</b><span>${nxt?"para "+nxt[0]:"estágio final"}</span></div><div class="card stat"><b>${S.done}</b><span>pausas vividas</span></div></div>
+    <div class="card row" style="flex-wrap:nowrap;gap:12px">${anjo(64)}<div><div class="eyebrow">Seu ANJO · forma ${fi+1} de 4</div><b style="font-family:var(--f-display);font-size:17px">${FORMS[fi][0]}</b><div class="meta">${FORMS[fi+1]?`Vira ${FORMS[fi+1][0]} com ${FORMS[fi+1][1]} pausas concluídas.`:"Forma completa."}</div></div></div>
+    <div class="card"><div class="eyebrow">Floresta coletiva · Regenera Elysium</div><div class="stat" style="padding:6px 0 0"><b>${Math.floor(S.seeds/10)}</b><span>${Math.floor(S.seeds/10)===1?"muda gerada":"mudas geradas"} com as suas sementes (regra provisória: 10 sementes = 1 muda)</span></div>
+      <p class="meta" style="margin-top:8px">Quando uma muda vai para a terra, você recebe foto, espécie e localização. Mostramos mudas e área em restauração; CO₂ só com medição verificada.</p></div>
+    <div class="card"><details><summary>Como ganhar sementes</summary><table class="seedrules" style="margin-top:6px"><tbody>
+      <tr><td>Micropausa concluída</td><td>1</td></tr><tr><td>Pausa curta concluída</td><td>2</td></tr><tr><td>Pausa média concluída</td><td>3</td></tr><tr><td>Prática completa concluída</td><td>5</td></tr><tr><td>Check-in do dia</td><td>1</td></tr></tbody></table>
+      <p class="meta" style="margin-top:8px">Sem perda por dias sem uso. Quem volta encontra a árvore como deixou.</p></details></div>
+  </div>`;
+}
+function weekData(){ const mon=addDays(TODAY,-TODAY_IDX); return WD.map((_,i)=>i>TODAY_IDX?null:((S.days[addDays(mon,i)]||{}).p||0)); }
+function lastWeekTotal(){ const mon=addDays(TODAY,-TODAY_IDX-7); let t=0; for(let i=0;i<7;i++) t+=(S.days[addDays(mon,i)]||{}).p||0; return t; }
+function progressoHTML(){
+  const wk=weekData(), total=wk.reduce((a,b)=>a+(b||0),0), avgNow=total/(TODAY_IDX+1), lw=lastWeekTotal(), avgLast=lw/7;
+  const max=Math.max(S.perDay,...wk.map(v=>v||0))+1, W=320,H=150,bw=28,gap=(W-40-7*bw)/6;
+  let bars=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Pausas por dia nesta semana">`;
+  const y=v=>H-24-(v/max)*(H-44);
+  bars+=`<line x1="20" x2="${W}" y1="${y(S.perDay)}" y2="${y(S.perDay)}" stroke="var(--gold)" stroke-dasharray="4 4" stroke-width="1.5"/><text x="${W}" y="${y(S.perDay)-5}" text-anchor="end">meta ${S.perDay}/dia</text>`;
+  wk.forEach((v,i)=>{const x=20+i*(bw+gap); if(v!=null){bars+=`<rect x="${x}" y="${y(v)}" width="${bw}" height="${H-24-y(v)}" rx="7" fill="${i===TODAY_IDX?"#D6A558":"#3E7752"}"/><text x="${x+bw/2}" y="${y(v)-5}" text-anchor="middle">${v}</text>`;} else bars+=`<rect x="${x}" y="${H-28}" width="${bw}" height="4" rx="2" fill="var(--line)"/>`;
+    bars+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle">${WD[i]}</text>`;});
+  bars+=`</svg>`;
+  // humor dos check-ins (7 dias)
+  const hs=Object.keys(S.days).sort().filter(d=>S.days[d].h!=null).slice(-7).map(d=>S.days[d].h);
+  let mood=`<svg class="chart" viewBox="0 0 320 110" role="img" aria-label="Humor nos check-ins"><line x1="16" x2="304" y1="90" y2="90" stroke="var(--line)"/>`;
+  const mx=i=>16+i*(288/Math.max(1,hs.length-1)), my=v=>90-(v-1)*18;
+  mood+=`<path d="${hs.map((v,i)=>(i?"L":"M")+mx(i)+" "+my(v)).join("")}" fill="none" stroke="#7D68AE" stroke-width="2.5"/>`;
+  hs.forEach((v,i)=>{mood+=`<circle cx="${mx(i)}" cy="${my(v)}" r="${i===hs.length-1?6:4}" fill="${i===hs.length-1?"#D6A558":"#7D68AE"}"/>`;});
+  mood+=`<text x="16" y="14">muito bem</text><text x="16" y="104">muito mal</text></svg>`;
+  // relação pausas x humor
+  const pairs=Object.keys(S.days).filter(d=>S.days[d].h!=null).map(d=>({h:S.days[d].h,p:S.days[d].p}));
+  const hi=pairs.filter(x=>x.p>=4), lo=pairs.filter(x=>x.p<4); const avg=a=>a.length?(a.reduce((s,x)=>s+x.h,0)/a.length):0;
+  const best=Object.entries(S.stats).map(([id,st])=>({p:byId(id),r:(st.a+1)/(st.s+2)})).filter(x=>x.p&&S.stats[x.p.id].a>=2).sort((a,b)=>b.r-a.r)[0];
+  const mon=addDays(TODAY,-TODAY_IDX), weekIds=WD.map((_,i)=>i>TODAY_IDX?[]:((S.days[addDays(mon,i)]||{}).ids||[])).flat();
+  const dimCount=d=>weekIds.filter(id=>byId(id)&&FAM[byId(id).fam].d===d).length;
+  const last=S.who5[S.who5.length-1], first=S.who5[0];
+  return `<div class="stack">
+    <div class="stats"><div class="card stat"><b>${total}</b><span>pausas na semana</span></div><div class="card stat"><b>${avgNow.toFixed(1).replace(".",",")}</b><span>por dia${lw?` (antes ${avgLast.toFixed(1).replace(".",",")})`:""}</span></div><div class="card stat"><b>${dayRec().f}</b><span>min de estudo hoje</span></div></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Pausas por dia</div>${bars}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Como você tem se sentido</div>${hs.length>=2?mood:`<p class="meta">O gráfico do seu humor aparece depois de 2 check-ins.</p>`}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">O que o ANJO percebeu</div>
+      ${hi.length>=2&&lo.length>=2?`<div class="insight"><i></i><span>Nos dias com 4 ou mais pausas, seu humor no check-in foi <b>${avg(hi).toFixed(1)}</b>, contra <b>${avg(lo).toFixed(1)}</b> nos outros dias.</span></div>`:""}
+      ${best?`<div class="insight"><i></i><span>A pausa que você mais aceita é <b>${esc(best.p.name)}</b>. Vou sugerir mais vezes.</span></div>`:""}
+      <div class="insight"><i></i><span>Estudo hoje: <b>${dayRec().f} min</b>. Pausas curtas reduzem a fadiga e aumentam a vitalidade.</span></div>
+    </div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:10px">Balanço regenerativo por dimensão</div><div class="dims">${Object.keys(DIMS).map(d=>{const n=dimCount(d);return `<div class="dimrow">${dimIcon(d,34)}<div><b>${d}</b> <small>${DIMS[d].s}</small><div class="bar"><i style="width:${Math.min(100,n*12)}%;background:${DIMS[d].c}"></i></div></div><span class="dur">${n}</span></div>`;}).join("")}</div></div>
+    <div class="card who"><div class="between"><div class="eyebrow">Bem-estar (índice WHO-5)</div><span class="badge">a cada 2 semanas</span></div>
+      <div class="row" style="margin-top:8px;align-items:flex-end;gap:18px">${S.who5.map(w=>`<div><div class="stat" style="padding:0"><b>${w.v}</b><span>${esc(w.w)}</span></div></div>`).join("")}
+      ${S.who5.length>1?`<span class="badge" style="background:${last.v>=first.v?"var(--forest)":"var(--danger)"};color:#fff">${last.v>=first.v?"+":""}${last.v-first.v} pontos</span>`:""}</div>
+      ${who5Ans?who5Form():`<button class="btn ghost small" style="margin-top:10px" data-who="start">Responder agora · 1 min</button>`}
+      <p class="note" style="margin-top:8px">Escala de 0 a 100. Abaixo de 50 sugere bem-estar baixo; nesse caso, vale conversar com um profissional.</p>
+    </div>
+  </div>`;
+}
+const WHOQ=["Eu me senti alegre e de bom humor","Eu me senti calmo e tranquilo","Eu me senti ativo e com energia","Eu acordei me sentindo descansado","Meu dia a dia teve coisas que me interessam"];
+const WHOS=["Nunca","Às vezes","Menos da metade","Mais da metade","Quase sempre","Sempre"];
+function who5Form(){ return `<p class="meta" style="margin-top:10px">Nas últimas duas semanas… (0 = nunca, 5 = o tempo todo)</p>`+WHOQ.map((qq,i)=>`<q>${qq}</q><div class="scale" role="group" aria-label="${qq}">${WHOS.map((l,v)=>`<button data-whoq="${i}" data-whov="${v}" aria-pressed="${who5Ans[i]===v}" title="${l}">${v}</button>`).join("")}</div>`).join("")+
+  `<button class="btn green block" style="margin-top:12px" data-who="save" ${who5Ans.some(v=>v==null)?"disabled":""}>Ver meu resultado</button>`; }
+function impactoHTML(){
+  const mudas=Math.floor(S.seeds/10);
+  return `<div class="stack">
+    <div class="hero"><div class="eyebrow">Seu impacto na Eduzz · fase 2</div><h2 style="font-size:22px;margin:6px 0">Você já gerou ${mudas} ${mudas===1?"muda":"mudas"} com os seus estudos</h2><p class="meta">Regra provisória: 10 sementes = 1 muda nativa no Regenera Elysium.</p></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:8px">Cursos que também regeneram</div><p class="meta">Quando a integração com a Eduzz chegar, seus cursos e as mudas geradas com eles aparecem aqui.</p></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Minhas mudas</div><p class="meta">Quando a sua primeira muda for plantada, ela aparece aqui com foto, espécie e localização.</p></div>
+    <div class="card"><div class="between"><div><div class="eyebrow">Plantar mais uma árvore</div><div class="meta">Contribuição opcional, com transparência</div></div><button class="btn ghost small" disabled>Em breve</button></div></div>
+  </div>`;
+}
+
+/* ================= Conversa ================= */
+function anjoSays(t){
+  if(crisisRe.test(t)) return {r:"Sinto muito que esteja assim. Você não precisa passar por isso sozinho. Ligue agora para o CVV no 188, de graça e a qualquer hora, ou fale com alguém de confiança. Eu fico aqui com você.",p:null};
+  const l=t.toLowerCase();
+  if(/(ansios|nervos|aflit|prova)/.test(l)) return {r:"Obrigado por contar. Antes da prova, a respiração 4–6 ajuda a acalmar. Topa um minuto comigo?",p:"r46"};
+  if(/(travad|bloque|estress|tens)/.test(l)) return {r:"Vamos soltar um pouco. Três respirações, agora.",p:"resp3"};
+  if(/(cansad|sono|exaust)/.test(l)) return {r:"Seus olhos devem estar pedindo descanso. 20 segundos olhando longe?",p:"distante"};
+  if(/(costas|parad|sentad|pesco)/.test(l)) return {r:"Pescoço e ombros, um minuto e meio. Se houver dor forte, vá com calma.",p:"pescoco"};
+  if(/(rotina|perfil|meu dia)/.test(l)) return {r:"Me conte no seu Perfil como é sua rotina e o que você precisa. Eu monto o plano do seu dia a partir disso.",p:null,go:"perfil"};
+  if(/(menos|chato|muita)/.test(l)){S.perDay=Math.max(1,S.perDay-2);S.plan=buildPlan();save();return {r:`Combinado. Agora são no máximo ${S.perDay} sugestões por dia.`,p:null};}
+  if(/(mais suges|mais pausas)/.test(l)){S.perDay=Math.min(10,S.perDay+2);S.plan=buildPlan();save();return {r:`Feito: até ${S.perDay} sugestões por dia.`,p:null};}
+  if(/(semana|resumo)/.test(l)){const tot=weekData().reduce((a,b)=>a+(b||0),0);return {r:`Nesta semana você viveu ${tot} pausas, ${lastWeekTotal()?(tot-lastWeekTotal()>=0?tot-lastWeekTotal()+" a mais":lastWeekTotal()-tot+" a menos")+" que na anterior":"na sua primeira semana registrada"}, e tem ${S.seeds} sementes. Os detalhes estão em Árvore › Progresso.`,p:null,go:"progresso"};}
+  if(/(pausa|ajuda|cuidar)/.test(l)) return {r:"Claro. Uma pausa curta para o corpo?",p:"maos"};
+  return {r:"Entendi. Posso sugerir uma pausa, ajustar seu plano ou mostrar o resumo da semana. Como prefere?",p:null};
+}
+function renderConversa(){
+  if(!S.chat.length) S.chat=[{a:1,t:`Oi${S.name?", "+S.name:""}. Como você está agora?`}];
+  $("#scr").innerHTML=`<div class="appbar">${brand(32)}<span class="badge">conversa</span></div>
+  <div class="chat">${S.chat.map(m=>`<div class="msg ${m.a?"a":"u"}">${esc(m.t)}${m.p?`<div style="margin-top:8px"><button class="btn gold small" data-start="${m.p}">${esc(byId(m.p).name)} · ${fmt(byId(m.p).sec)}</button></div>`:""}${m.go?`<div style="margin-top:8px"><button class="btn ghost small" data-go="${m.go}">Abrir</button></div>`:""}</div>`).join("")}</div>
+  <div class="chips" style="margin-top:6px">${["Estou ansioso com a prova","Estou travado, me ajuda","Resumo da semana","Quero contar minha rotina"].map(x=>`<button class="chip" data-q="${x}">${x}</button>`).join("")}</div>`;
+  $("#composeSlot").innerHTML=`<form class="compose" id="cform"><input type="text" id="cin" placeholder="Fale com o ANJO" autocomplete="off" aria-label="Mensagem para o ANJO"><button class="btn gold small" type="submit">Enviar</button></form>`;
+  $("#cform").addEventListener("submit",e=>{e.preventDefault();const v=$("#cin").value.trim();if(v)send(v);});
+  const sc=$("#scr"); sc.scrollTop=sc.scrollHeight;
+}
+function send(v){S.chat.push({a:0,t:v});const r=anjoSays(v);S.chat.push({a:1,t:r.r,p:r.p,go:r.go});S.chat=S.chat.slice(-30);save();renderConversa();setTimeout(()=>{const i=$("#cin"); if(i) i.focus();},0);}
+
+/* ================= Perfil e ajustes ================= */
+function profileFields(){
+  const pr=S.profile;
+  return `<div class="field"><label for="ptext">Conte sobre sua rotina e o que você precisa</label>
+    <textarea id="ptext" placeholder="Ex.: trabalho sentado o dia todo, estudo à noite, sinto dor nas costas e fico ansioso antes das provas">${esc(pr.texto)}</textarea></div>
+  <div class="times">
+    <div class="field"><label for="pacordar">Acordo</label><input type="time" id="pacordar" value="${pr.acordar}"></div>
+    <div class="field"><label for="pdormir">Durmo</label><input type="time" id="pdormir" value="${pr.dormir}"></div>
+    <div class="field"><label for="pinicio">Começo a trabalhar</label><input type="time" id="pinicio" value="${pr.inicio}"></div>
+    <div class="field"><label for="pfim">Termino</label><input type="time" id="pfim" value="${pr.fim}"></div>
+  </div>
+  <div class="field"><label>Quando estudo</label><div class="chips">${[["manha","Manhã"],["tarde","Tarde"],["noite","Noite"],["nao","Não estudo"]].map(([v,l])=>`<button class="chip" data-pest="${v}" aria-pressed="${pr.estudo===v}">${l}</button>`).join("")}</div></div>
+  <div class="field"><label>Onde passo o dia</label><div class="chips">${["Casa","Escritório","Rua","Faculdade"].map(l=>`<button class="chip" data-plug="${l}" aria-pressed="${pr.lugar===l}">${l}</button>`).join("")}</div></div>
+  <div class="field"><label>O que quero melhorar</label><div class="chips">${Object.keys(GOALS).map(g=>`<button class="chip" data-goal="${g}" aria-pressed="${S.goals.includes(g)}">${GOALS[g].n}</button>`).join("")}</div></div>`;
+}
+function readProfile(){
+  const g=id=>{const e=$("#"+id);return e?e.value:null;};
+  if(g("ptext")!=null) S.profile.texto=g("ptext");
+  ["acordar","dormir","inicio","fim"].forEach(k=>{const v=g("p"+k); if(v) S.profile[k]=v;});
+}
+function renderPerfil(){
+  const u=understand(S.profile.texto);
+  $("#scr").innerHTML=`<div class="row" style="gap:12px;margin:6px 0 14px;flex-wrap:nowrap"><span class="avatar">${esc((S.name||"?")[0])}</span><div><h1 style="font-size:22px">${esc(S.name||"Seu perfil")}</h1><div class="meta">${S.done} ${S.done===1?"pausa":"pausas"} · forma ${FORMS[formIdx(S.done)][0]}</div></div></div>
+  <div class="stack">
+    ${isStandalone()?"":`<div class="card"><div class="eyebrow">Instalar o ANJO</div><p class="meta" style="margin:6px 0 ${installEvt?"10px":"0"}">${installEvt?"Coloque o ANJO na tela inicial e use como um app.":"No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”. No Android: menu do navegador e “Instalar app”."}</p>${installEvt?`<button class="btn gold small" data-install>Instalar</button>`:""}</div>`}
+    <div class="card stack"><div class="eyebrow">Minha rotina e necessidades</div>${profileFields()}
+      <button class="btn gold block" data-plan>Atualizar meu plano</button></div>
+    <div class="card"><div class="row" style="gap:10px;flex-wrap:nowrap">${anjoLogo(40)}<div><div class="eyebrow">O que o ANJO entendeu</div></div></div>
+      <div class="understood" style="margin-top:10px">${u.length?u.map(x=>`<span>${esc(x.l)}</span>`).join(""):`<span>Conte um pouco mais no texto acima</span>`}</div>
+      <div class="eyebrow" style="margin-top:14px">Como formatei seu dia</div><ul class="why">${planWhy().map(r=>`<li>${esc(r)}</li>`).join("")}</ul>
+      <button class="link" style="margin-top:10px" data-tab="hoje">Ver o plano de hoje ›</button></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Meus momentos</div>
+      ${(S.reminders||[]).map((r,i)=>`<div class="set"><span><b style="font-variant-numeric:tabular-nums">${r.t}</b> · ${esc(r.l)}</span><button class="link" data-rmrem="${i}">Remover</button></div>`).join("")}
+      <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="time" id="remT" value="17:00" style="width:110px" aria-label="Horário"><input type="text" id="remL" placeholder="Ex.: caminhar" aria-label="O que lembrar"><button class="btn ghost small" data-addrem>Adicionar</button></div></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Segurança</div><p class="meta">Só servem para esconder práticas inadequadas. Ficam no aparelho.</p>
+      ${Object.keys(SAFETY).map(k=>`<div class="set"><label for="sf-${k}">${SAFETY[k].n}</label><input type="checkbox" class="switch" id="sf-${k}" data-safe="${k}" ${S.safety[k]?"checked":""}></div>`).join("")}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Experiência</div>
+      <div class="set"><label for="sNarr">Narração por voz<small>Todas as práticas são guiadas em áudio</small></label><input type="checkbox" class="switch" id="sNarr" ${S.narr?"checked":""}></div>
+      <div class="set"><label for="sMusic">Música de fundo<small>Trilha suave em cada prática</small></label><input type="checkbox" class="switch" id="sMusic" ${S.music?"checked":""}></div>
+      <div class="set"><label for="perDay">Sugestões por dia<small>O ANJO nunca passa deste número</small></label><span class="row" style="flex-wrap:nowrap"><input type="range" id="perDay" min="1" max="10" value="${S.perDay}"><b style="width:20px;text-align:right" id="perDayV">${S.perDay}</b></span></div>
+      <div class="set"><label for="quiet">Silêncio a partir de<small>Também respeita reuniões e “não perturbe”</small></label><select id="quiet">${["20:00","21:00","22:00","23:00"].map(h=>`<option ${h===S.quietFrom?"selected":""}>${h}</option>`).join("")}</select></div>
+    </div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Famílias de prática</div>
+      ${Object.keys(FAM).map(f=>`<div class="set"><label for="fam-${f}">${FAM[f].n}<small>Dimensão ${FAM[f].d}</small></label><input type="checkbox" class="switch" id="fam-${f}" data-fam="${f}" ${S.fams.includes(f)?"checked":""}></div>`).join("")}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Lembretes, aparência e permissões</div>
+      <div class="set"><label for="pNotify">Lembretes no aparelho<small>Avisos das pausas e do check-in com o app em segundo plano</small></label><input type="checkbox" class="switch" id="pNotify" ${S.notify?"checked":""}></div>
+      <div class="set"><label for="ckTime">Lembrete do check-in<small>Uma vez por dia</small></label><input type="time" id="ckTime" value="${S.ckTime}" style="width:auto"></div>
+      <div class="set"><label for="themeSel">Aparência<small>O modo noturno usa o azul petróleo</small></label><select id="themeSel">${[["auto","Automática"],["light","Clara"],["dark","Noturna"]].map(([v,l])=>`<option value="${v}" ${S.theme===v?"selected":""}>${l}</option>`).join("")}</select></div>
+      <div class="set"><label for="pSteps">Passos do celular<small>Chega na versão para as lojas de apps</small></label><input type="checkbox" class="switch" id="pSteps" disabled></div>
+      <div class="set"><label for="pCal">Calendário<small>Chega na fase 2</small></label><input type="checkbox" class="switch" id="pCal" disabled></div></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:8px">Privacidade</div>
+      <p class="meta" style="margin-bottom:10px">Nenhum dado individual é vendido ou compartilhado. Parceiros só veem números agregados e anônimos.</p>
+      <div class="row"><button class="btn ghost small" id="exportBtn">Exportar meus dados</button>
+      ${confirmDel?`<button class="btn small" style="background:var(--danger);color:#fff" id="delYes">Apagar tudo agora</button><button class="btn ghost small" id="delNo">Cancelar</button>`:`<button class="btn ghost small" id="delBtn">Apagar meus dados</button>`}</div>
+      <pre id="exportOut" hidden style="white-space:pre-wrap;font-size:11px;max-height:160px;overflow:auto;background:var(--card-2);padding:10px;border-radius:12px;margin:10px 0 0"></pre></div>
+    <p class="note">O ANJO não é dispositivo médico, não diagnostica nem trata. Em sofrimento intenso, ligue para o CVV no 188.</p>
+  </div>`;
+  $("#perDay").oninput=e=>{S.perDay=+e.target.value;$("#perDayV").textContent=S.perDay;S.plan=buildPlan();save();};
+  $("#quiet").onchange=e=>{S.quietFrom=e.target.value;save();toast("Silêncio a partir das "+S.quietFrom);};
+  $("#pNotify").onchange=e=>{ if(e.target.checked){ requestNotify().then(ok=>{ e.target.checked=ok; }); } else { S.notify=false; save(); } };
+  $("#ckTime").onchange=e=>{ if(e.target.value){ S.ckTime=e.target.value; save(); toast("Lembrete do check-in às "+S.ckTime); } };
+  $("#themeSel").onchange=e=>{ S.theme=e.target.value; save(); applyTheme(); };
+  $("#sNarr").onchange=e=>{S.narr=e.target.checked;save();};
+  $("#sMusic").onchange=e=>{S.music=e.target.checked;save();};
+  document.querySelectorAll("[data-safe]").forEach(el=>el.onchange=()=>{S.safety[el.dataset.safe]=el.checked;S.plan=buildPlan();save();});
+  document.querySelectorAll("[data-fam]").forEach(el=>el.onchange=()=>{const f=el.dataset.fam;S.fams=el.checked?[...new Set(S.fams.concat(f))]:S.fams.filter(x=>x!==f);if(!S.fams.length){S.fams=[f];el.checked=true;toast("Mantenha ao menos uma família");}S.plan=buildPlan();save();});
+  $("#exportBtn").onclick=()=>{ const data=JSON.stringify({app:"ANJO EYWA",formato:1,exportadoEm:new Date().toISOString(),dados:S},null,2);
+    try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download="anjo-meus-dados-"+TODAY+".json"; document.body.appendChild(a); a.click(); a.remove(); toast("Arquivo com seus dados salvo"); }catch(e){ const o=$("#exportOut"); o.hidden=false; o.textContent=data; } };
+  if(confirmDel){$("#delYes").onclick=()=>{try{localStorage.removeItem(KEY);}catch(e){} S=DEFAULT();S.plan=buildPlan();save();confirmDel=false;notif=null;renderNotif();onbStep=0;tab="hoje";render();};
+    $("#delNo").onclick=()=>{confirmDel=false;renderPerfil();};}
+  else $("#delBtn").onclick=()=>{confirmDel=true;renderPerfil();};
+}
+
+/* ================= Boas-vindas ================= */
+const ONB_N=7;
+function renderOnb(){
+  const prog=`<div class="prog">${Array.from({length:ONB_N},(_,i)=>`<i class="${i<=onbStep?"on":""}"></i>`).join("")}</div>`;
+  let h="";
+  if(onbStep===0) h=`${prog}${anjoLogo(130)}<div class="brand" style="justify-content:center"><div class="wm" style="align-items:center"><b style="font-size:22px">ANJO</b><span>EYWA</span></div></div><h1>Olá, eu sou o ANJO</h1><p>Uma inteligência que cuida de você: corpo, mente e natureza. Apareço só na hora certa.</p>
+    <ul class="promise"><li>Não vigio o que você faz no celular.</li><li>Não vendo seus dados.</li><li>Não disputo sua atenção: devolvo.</li></ul>
+    <div class="foot"><button class="btn gold" data-onb="next">Começar · 2 minutos</button></div>`;
+  if(onbStep===1) h=`${prog}${anjo(70,0)}<h1>Me conte sobre você</h1><p>Com isso eu formato um plano só seu.</p>
+    <div class="field"><label for="oname">Como posso te chamar?</label><input type="text" id="oname" value="${esc(S.name)}"></div>
+    <div class="field"><label for="ptext">Como é sua rotina e o que você precisa?</label><textarea id="ptext" placeholder="Ex.: trabalho sentado, estudo à noite, sinto dor nas costas e fico ansioso antes das provas">${esc(S.profile.texto)}</textarea></div>
+    <div class="foot"><button class="btn gold" data-onb="next">Continuar</button></div>`;
+  if(onbStep===2) h=`${prog}${anjo(70,0)}<h1>Seus horários</h1><p>Assim sei quando sugerir e quando ficar em silêncio.</p>
+    <div class="times"><div class="field"><label for="pacordar">Acordo</label><input type="time" id="pacordar" value="${S.profile.acordar}"></div><div class="field"><label for="pdormir">Durmo</label><input type="time" id="pdormir" value="${S.profile.dormir}"></div>
+    <div class="field"><label for="pinicio">Começo a trabalhar</label><input type="time" id="pinicio" value="${S.profile.inicio}"></div><div class="field"><label for="pfim">Termino</label><input type="time" id="pfim" value="${S.profile.fim}"></div></div>
+    <div class="field" style="text-align:left;width:100%"><label>Quando estudo</label><div class="chips">${[["manha","Manhã"],["tarde","Tarde"],["noite","Noite"],["nao","Não estudo"]].map(([v,l])=>`<button class="chip" data-pest="${v}" aria-pressed="${S.profile.estudo===v}">${l}</button>`).join("")}</div></div>
+    <div class="foot"><button class="btn gold" data-onb="next">Continuar</button></div>`;
+  if(onbStep===3) h=`${prog}${anjo(70,0)}<h1>Algum cuidado de saúde?</h1><p>Só para esconder práticas que não combinam com você. Fica no aparelho.</p>
+    <div class="opts" style="width:100%">${Object.keys(SAFETY).map(k=>`<button class="opt" data-osafe="${k}" aria-pressed="${!!S.safety[k]}">${SAFETY[k].n}</button>`).join("")}</div>
+    <div class="foot"><button class="btn gold" data-onb="next">Continuar</button></div>`;
+  if(onbStep===4) h=`${prog}${anjo(70,0)}<h1>Posso te lembrar das pausas?</h1>
+    <ul class="promise"><li><b>Lembretes no aparelho.</b> O aviso chega na hora certa, com “fazer agora”, “daqui a 10 min” e “hoje não”.</li><li>Funciona melhor com o ANJO instalado na tela inicial. Dá para mudar quando quiser no Perfil.</li></ul>
+    <div class="foot"><button class="btn green" data-onb="next" data-perm>Permitir lembretes</button><button class="btn ghost" data-onb="next">Agora não</button></div>`;
+  if(onbStep===5){ const u=personalize(); h=`${prog}${anjo(70,1)}<h1>Montei seu plano</h1>
+    <div class="understood" style="justify-content:center">${u.map(x=>`<span>${esc(x.l)}</span>`).join("")||"<span>rotina padrão</span>"}</div>
+    <ul class="tl" style="width:100%;text-align:left">${S.plan.slice(0,5).map(m=>{const p=byId(m.id);return `<li><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}</b><span>${esc(m.lbl)}</span></div></li>`;}).join("")}</ul>
+    <div class="foot"><button class="btn gold" data-onb="next">Perfeito</button></div>`; }
+  if(onbStep===6) h=`${prog}${anjo(110,0)}<h1>Sua primeira pausa</h1><p>15 segundos, com narração e música, para mostrar como funciona e plantar sua primeira semente.</p>
+    <div class="foot"><button class="btn gold" data-start="mandibula" data-first>Fazer agora</button></div>`;
+  $("#scr").innerHTML=`<div class="onb">${h}</div>`;
+}
+
+/* ================= Pausa guiada ================= */
+let tick=null;
+function startPause(id,first){
+  const p=byId(id); if(!p) return; Voice.stop();
+  const intro=p.size==="media"||p.size==="completa"||!!p.warn;
+  pause={p,left:p.sec,phase:intro?"intro":"run",first:!!first,step:-1,el:0};
+  notif=null; renderNotif(); ck=null; drawCk();
+  if(!intro) beginRun(); else { drawPause(); Voice.speak(`${p.name}. ${fmt(p.sec).replace("min","minutos").replace(" s"," segundos")}.${p.warn?" Antes de começar: "+p.warn:""}`); }
+}
+function beginRun(){
+  pause.phase="run"; pause.running=true; Music.start(FAM[pause.p.fam].d); clearInterval(tick);
+  drawPause(); stepCheck();
+  tick=setInterval(()=>{ if(!pause||pause.phase!=="run"||!pause.running) return; pause.left--; pause.el++; if(pause.left<=0){pause.left=0;pause.running=false; Voice.speak("Pronto. Perceba como você está agora."); Music.chime();} stepCheck(); drawPause(true); },1000);
+}
+function stepCheck(){
+  const p=pause.p, k=1-pause.left/p.sec, si=Math.min(p.steps.length-1,Math.floor(k*p.steps.length));
+  if(si!==pause.step&&pause.left>0){ pause.step=si; if(si===0) Voice.speak(`Vamos fazer ${p.name}. ${p.steps[0]}.`); else { Voice.speak(p.steps[si]); Music.chime(); } }
+}
+const IC={vol:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/>',mus:'<path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>'};
+const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+function drawPause(light){
+  let el=$("#phone .overlay.pz"); if(!pause){ if(el) el.remove(); return; }
+  if(!el){el=document.createElement("div");el.className="overlay immersive pz";el.setAttribute("role","dialog");el.setAttribute("aria-label","Pausa guiada");$("#phone").appendChild(el);}
+  const p=pause.p;
+  if(light&&pause.phase==="run"&&el.querySelector(".timerpill")){ // atualização leve a cada segundo
+    const k=1-pause.left/p.sec, si=Math.max(0,pause.step), fin=pause.left===0;
+    el.querySelector(".timerpill").textContent=fin?"Concluída":clockF(pause.left);
+    el.querySelector(".progress i").style.width=(k*100)+"%";
+    el.querySelector(".caption").innerHTML=`<small>Passo ${si+1} de ${p.steps.length}</small>${fin?"Pronto. Respire e perceba como está.":esc(p.steps[si])}`;
+    el.querySelectorAll(".steps-dots i").forEach((d,i)=>d.classList.toggle("on",i<=si));
+    const bl=el.querySelector(".breathlbl"); if(bl) bl.textContent=(pause.el%10)<4?"Inspire":"Expire";
+    const fb=el.querySelector("[data-finish]"); if(fb) fb.textContent=fin?"Concluir":"Concluir agora";
+    const tg=el.querySelector("[data-toggle]"); if(tg) tg.textContent=pause.running?"Pausar":"Retomar";
+    return;
+  }
+  const ctl=`<div class="row" style="gap:6px"><button class="iconbtn" data-narr aria-pressed="${S.narr}" aria-label="Narração">${icon("vol")}</button><button class="iconbtn" data-mus aria-pressed="${S.music}" aria-label="Música de fundo">${icon("mus")}</button>${pause.first&&pause.phase!=="done"?"":`<button class="iconbtn" data-close aria-label="Fechar">${icon("x")}</button>`}</div>`;
+  if(pause.phase==="done"){
+    const si=stageIdx(S.seeds), nxt=STAGES[si+1], prev=STAGES[si][1], kk=nxt?(S.seeds-prev)/(nxt[1]-prev):1;
+    el.className="overlay immersive pz";
+    el.innerHTML=`<div class="celebrate"><div class="spark">${anjo(140)}${Array.from({length:10},(_,i)=>`<i style="--x:${Math.round(Math.cos(i*.63)*90)}px;--y:${Math.round(Math.sin(i*.63)*90)}px"></i>`).join("")}</div>
+      <div class="eyebrow">Conquista</div><h1>+${SIZE[p.size].seeds} ${SIZE[p.size].seeds>1?"sementes":"semente"}</h1>
+      <p class="meta">${esc(p.name)} concluída. ${S.todayDone.length} de ${S.perDay} pausas hoje.</p>
+      <div style="width:100%"><div class="between meta" style="font-size:12px;margin-bottom:4px"><span>${STAGES[si][0]}</span><span>${nxt?nxt[0]:""}</span></div><div class="progress"><i style="width:${kk*100}%"></i></div></div>
+      <div class="eyebrow" style="margin-top:8px">Como foi?</div>
+      <div class="chips" style="justify-content:center">${["Leve","Boa","Muito boa"].map(x=>`<button class="chip" data-rate>${x}</button>`).join("")}</div>
+      <div class="foot"><button class="btn green" data-close>${pause.first?"Começar meu dia":"Voltar ao dia"}</button></div></div>`;
+    return;
+  }
+  if(pause.phase==="intro"){
+    el.className="overlay immersive pz";
+    el.innerHTML=`<div class="ov-top"><span class="eyebrow">${FAM[p.fam].d} · ${FAM[p.fam].n} · ${fmt(p.sec)}</span>${ctl}</div>
+      <div class="stage">${illo(p)}</div>
+      <h1 style="font-size:24px">${esc(p.name)}</h1><p class="meta" style="margin:4px 0 12px">Por ${esc(p.author)} · narração e música · +${SIZE[p.size].seeds} sementes</p>
+      ${p.warn?`<div class="warn"><b>Antes de começar.</b> ${esc(p.warn)} Em caso de dúvida, procure um profissional.</div>`:""}
+      <ol class="meta" style="padding-left:18px;margin:12px 0">${p.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+      <div class="pause-actions"><button class="btn gold" data-begin>${p.warn?"Entendi, começar":"Começar"}</button></div>`;
+    return;
+  }
+  const k=1-pause.left/p.sec, si=Math.max(0,pause.step), fin=pause.left===0, isResp=p.fam==="resp";
+  el.className="overlay immersive pz run";
+  el.innerHTML=`<div class="ov-top"><span class="eyebrow">${FAM[p.fam].n} · ${fmt(p.sec)}</span>${ctl}</div>
+    <div class="stage">${illo(p)}<span class="timerpill">${fin?"Concluída":clockF(pause.left)}</span>${isResp?`<span class="breathlbl">Inspire</span>`:""}</div>
+    <div class="progress"><i style="width:${k*100}%"></i></div>
+    <h1 style="font-size:20px;text-align:center;margin-top:12px">${esc(p.name)}</h1>
+    <div class="caption" aria-live="polite"><small>Passo ${si+1} de ${p.steps.length}</small>${fin?"Pronto. Respire e perceba como está.":esc(p.steps[si])}</div>
+    <div class="steps-dots">${p.steps.map((_,i)=>`<i class="${i<=si?"on":""}"></i>`).join("")}</div>
+    <div class="pause-actions">
+      <button class="btn green" data-finish>${fin?"Concluir":"Concluir agora"}</button>
+      ${pause.first?"":`<button class="btn ghost" data-toggle>${pause.running?"Pausar":"Retomar"}</button><button class="btn ghost" data-swap>Trocar</button>`}
+    </div>`;
+}
+function finishPause(){
+  const p=pause.p; S.seeds+=SIZE[p.size].seeds; S.done++; S.todayDone.push(p.id); S.refusals=0;
+  const st=S.stats[p.id]||{s:0,a:0}; st.a++; if(st.s<st.a) st.s=st.a; S.stats[p.id]=st;
+  const dr=dayRec(); dr.p++; (dr.ids=dr.ids||[]).push(p.id); if(pause.first) S.onboarded=true;
+  save(); clearInterval(tick); Voice.speak(`Muito bem. Você ganhou ${SIZE[p.size].seeds} ${SIZE[p.size].seeds>1?"sementes":"semente"}.`); Music.stop(); Music.chime();
+  pause.phase="done"; pause.running=false; drawPause();
+}
+function closePause(){
+  const wasFirst=pause&&pause.first&&pause.phase==="done"; clearInterval(tick); Voice.stop(); Music.stop(); pause=null; drawPause();
+  if(wasFirst){onbStep=-1;tab="hoje";} render();
+}
+
+/* ================= Check-in (overlay) ================= */
+function openCk(){ ck={i:0,a:{corpo:[]}}; drawCk(); }
+function drawCk(){
+  let el=$("#phone .overlay.ckov"); if(!ck){ if(el) el.remove(); return; }
+  if(!el){el=document.createElement("div");el.className="overlay light ckov";el.setAttribute("role","dialog");el.setAttribute("aria-label","Check-in do dia");$("#phone").appendChild(el);}
+  const top=`<div class="ov-top"><span class="eyebrow">Check-in de hoje</span><button class="iconbtn" data-ckclose aria-label="Fechar">${icon("x")}</button></div>`;
+  if(ck.i>=CK.length){
+    const recs=recommend(ck.a), crisis=crisisRe.test(ck.a.nota||"")||ck.a.humor===1;
+    el.innerHTML=`<div class="ck">${top}<div class="row" style="flex-wrap:nowrap;gap:12px">${anjo(64)}<div><h1 style="font-size:21px">Obrigado por contar</h1><p class="meta">Escolhi estas práticas para o seu dia. +1 semente</p></div></div>
+      ${crisis?`<div class="crisis">Dias difíceis acontecem. Se o peso estiver grande, fale com alguém: o CVV atende no <b>188</b>, de graça, a qualquer hora.</div>`:""}
+      <div class="stack" style="gap:8px">${recs.map(r=>pracRow(r.p,r.w)).join("")}</div>
+      <div class="foot"><button class="btn gold" data-start="${recs[0]?recs[0].p.id:"resp3"}">Fazer a primeira agora</button><button class="btn ghost" data-ckclose>Depois</button></div></div>`;
+    return;
+  }
+  const qq=CK[ck.i], v=ck.a[qq.k];
+  let body="";
+  if(qq.face) body=`<div class="faces">${qq.o.map(([n,l])=>`<button class="face" data-cka="${n}" aria-pressed="${v===n}">${faceSVG(n)}${l}</button>`).join("")}</div>`;
+  else if(qq.text) body=`<textarea id="cknote" placeholder="Opcional. Fica só com você e o ANJO.">${esc(ck.a.nota||"")}</textarea>`;
+  else body=`<div class="opts">${qq.o.map(([n,l])=>`<button class="opt" data-cka="${n}" aria-pressed="${qq.multi?(ck.a.corpo||[]).includes(n):v===n}">${l}</button>`).join("")}</div>`;
+  const ok=qq.text||qq.multi||v!=null;
+  el.innerHTML=`<div class="ck">${top}<div class="prog">${CK.map((_,i)=>`<i class="${i<=ck.i?"on":""}"></i>`).join("")}</div>
+    <h1>${qq.q}</h1>${qq.multi?`<p class="meta" style="margin-top:-6px">Pode marcar mais de um.</p>`:""}${body}
+    <div class="foot"><button class="btn gold" data-cknext ${ok?"":"disabled"}>${ck.i===CK.length-1?"Ver minhas práticas":"Continuar"}</button>${ck.i>0?`<button class="btn ghost" data-ckback>Voltar</button>`:""}</div></div>`;
+}
+function finishCk(){
+  const first=!S.today; S.today=Object.assign({d:TODAY},ck.a); if(first){S.seeds++;} dayRec().h=S.today.humor; S.plan=buildPlan(); save();
+  if(S.today.humor<=2||S.today.tensao==="alta") addLog(nowT,`<b>Check-in</b> <span class="w">humor ${S.today.humor}/5, tensão ${S.today.tensao}: o motor passa a priorizar respiração e mente hoje.</span>`);
+  else addLog(nowT,`<b>Check-in</b> <span class="w">humor ${S.today.humor}/5, energia ${S.today.energia}: recomendações atualizadas.</span>`);
+}
+
+/* ================= Motor de decisão, lembretes e notificações ================= */
+const greetPart=()=>{const h=new Date().getHours();return h<12?"Bom dia":h<18?"Boa tarde":"Boa noite";};
+function planMsg(m,p){
+  const L=(m.lbl||"").toLowerCase();
+  if(/seu momento/.test(L)) return `Lembrete que você pediu: ${m.lbl.replace(/^Seu momento: /,"")}.`;
+  if(/aula|foco/.test(L)) return "Boa sessão. Que tal uma pausa para o corpo?";
+  if(/almoço/.test(L)) return "Antes do almoço: que tal comer com calma, sem tela?";
+  if(/levantar/.test(L)) return "O corpo está parado há um tempo. Que tal levantar um pouco?";
+  if(/fim do expediente/.test(L)) return "Fim do expediente. Uma pausa para fechar o dia com leveza?";
+  if(/dormir/.test(L)) return "Quer fazer o ritual de sono hoje? É só um convite.";
+  if(/começo do dia|início/.test(L)) return `${greetPart()}. Começar com calma: ${p.name.toLowerCase()}?`;
+  return `Hora de uma pausa: ${p.name.toLowerCase()}, ${fmt(p.sec)}.`;
+}
+async function sysNotify(title,body,action){
+  if(!S.notify||!("Notification" in window)||Notification.permission!=="granted") return;
+  if(document.visibilityState==="visible") return; // com o app aberto, o aviso aparece dentro dele
+  const opts={body,tag:"anjo-"+action,icon:"icons/icon-192.png",badge:"icons/icon-192.png",data:{action}};
+  try{ const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(); if(reg) reg.showNotification(title,opts); else new Notification(title,opts); }catch(e){}
+}
+function requestNotify(){
+  if(!("Notification" in window)){ toast("Este navegador não permite lembretes"); return Promise.resolve(false); }
+  return Notification.requestPermission().then(p=>{ S.notify=p==="granted"; save(); toast(S.notify?"Lembretes ativados":"Lembretes não autorizados no navegador"); return S.notify; });
+}
+function fire(m){
+  if(onbStep>=0||pause||scan||ck) return false;
+  if(m.ckRemind){ notif={m:{msg:`${greetPart()}${S.name?", "+S.name:""}. Como você está hoje? O check-in leva 30 segundos e eu ajusto as práticas do dia.`},ckr:true}; renderNotif(); sysNotify("Como você está hoje?","Faça seu check-in no ANJO.","ck"); return true; }
+  if(m.rescan){ notif={m:{msg:"Já se passaram 2 semanas. Refaça seu Raio-X e veja o que mudou no seu corpo e na sua mente."},rx:true}; renderNotif(); sysNotify("Hora do seu Raio-X","Veja o que mudou em 2 semanas.","rx"); return true; }
+  if(!m.invite&&toMin(nowT)>=toMin(S.quietFrom)) return false;
+  if(!m.invite&&S.refusals>=2) return false;
+  if(!m.invite&&S.shownToday>=S.perDay) return false;
+  let p=m.id&&byId(m.id)&&allowed(byId(m.id))?byId(m.id):choose(m).p;
+  if(!m.invite) S.shownToday++; const st=S.stats[p.id]||{s:0,a:0}; st.s++; S.stats[p.id]=st; save();
+  m=Object.assign({},m,{t:nowT,msg:m.msg||planMsg(m,p)});
+  notif={m,p}; renderNotif(); sysNotify(m.invite?"Um convite do ANJO":"Hora de uma pausa",`${p.name} · ${fmt(p.sec)}`,p.id);
+  return true;
+}
+function endFocus(){
+  const len=S.focusLen; S.focusStart=null; dayRec().f+=len; save(); if(tab==="hoje"&&!pause) render();
+  fire({lbl:`Fim de estudo de ${len} min`,size:len>=50?"curta":"micro",fav:len>=50?"corpo":"olhos",msg:len>=50?"Boa sessão de estudo. Suas mãos e olhos trabalharam muito: uma pausa curta?":"Bloco concluído. 20 segundos para os olhos?"});
+}
+// relógio do app: confere o plano a cada 30 segundos
+let lastMin="";
+function clockTick(){
+  const changed=rollover(); if(changed){ S.plan=buildPlan(); save(); }
+  nowT=nowStr(); const now=toMin(nowT);
+  if(S.refusedAt&&Date.now()-S.refusedAt>3*36e5){ S.refusals=0; S.refusedAt=null; save(); }
+  if(S.focusStart&&Date.now()-S.focusStart>=S.focusLen*60000) endFocus();
+  if(S.onboarded){
+    if(!S.today&&!S.fired.includes("ck")&&now>=toMin(S.ckTime)&&now-toMin(S.ckTime)<=180){ if(fire({ckRemind:true})){S.fired.push("ck");save();} }
+    const last=S.scans[S.scans.length-1];
+    if(last&&last.date&&daysBetween(last.date,TODAY)>=14&&!S.fired.includes("rx")&&now>=toMin("10:00")){ if(fire({rescan:true})){S.fired.push("rx");save();} }
+    (S.plan||[]).forEach(m=>{ const key=m.t+"|"+m.id, tm=toMin(m.t);
+      if(S.fired.includes(key)||now<tm||now-tm>20) return;
+      const p=byId(m.id); if(fire({t:m.t,lbl:m.lbl,id:m.id,invite:m.invite,size:p?p.size:"micro"})){S.fired.push(key);save();} });
+  }
+  if((changed||nowT!==lastMin)&&tab==="hoje"&&onbStep<0&&!pause&&!scan&&!ck&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){ const sc=$("#scr"), st=sc.scrollTop; render(); sc.scrollTop=st; }
+  lastMin=nowT;
+}
+function renderNotif(){
+  let el=$("#phone .notif");
+  if(!notif||pause){ notif=pause?null:notif; if(!notif&&el) el.remove(); if(!notif) return; }
+  if(!el){el=document.createElement("div");el.className="notif";el.setAttribute("role","alert");$("#phone").appendChild(el);}
+  if(notif.rx){ el.innerHTML=`<div class="h">${anjoLogo(28)}<b style="font-size:13px">ANJO</b><span class="meta">· Raio-X</span></div><p>${esc(notif.m.msg)}</p><div class="row"><button class="btn gold small" data-n="rx">Refazer agora</button><button class="btn ghost small" data-n="fechar">Depois</button></div>`; return; }
+  if(notif.ckr){ el.innerHTML=`<div class="h">${anjoLogo(28)}<b style="font-size:13px">ANJO</b><span class="meta">· check-in</span></div><p>${esc(notif.m.msg)}</p><div class="row"><button class="btn gold small" data-n="ck">Fazer check-in</button><button class="btn ghost small" data-n="fechar">Depois</button></div>`; return; }
+  const {m,p}=notif;
+  el.innerHTML=`<div class="h">${anjoLogo(28)}<b style="font-size:13px">ANJO</b><span class="meta">· ${m.invite?"convite":"agora"}</span></div>
+    <p>${esc(m.msg)}<br><span class="meta">${esc(p.name)} · ${fmt(p.sec)} · narrada</span></p>
+    <div class="row"><button class="btn gold small" data-n="agora">${m.invite?"Quero":"Fazer agora"}</button>${m.invite?"":`<button class="btn ghost small" data-n="adiar">Daqui a 10 min</button>`}<button class="btn ghost small" data-n="nao">${m.invite?"Agora não":"Hoje não"}</button></div>
+    ${m.invite?"":`<div class="alt"><span>Prefere outra?</span>${[["corpo","Movimento"],["resp","Respiração"],["olhos","Descanso visual"]].map(([f,l])=>`<button class="chip" data-alt="${f}">${l}</button>`).join("")}</div>`}`;
+}
+
+/* ================= eventos ================= */
+document.addEventListener("keydown",e=>{ const g=e.target.closest&&e.target.closest("g[data-reg]"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); g.dispatchEvent(new MouseEvent("click",{bubbles:true})); } });
+document.addEventListener("click",e=>{
+  const rg=e.target.closest("[data-reg]"); if(rg&&scan&&scan.i===5){ const k=rg.dataset.reg, v=scan.a.pain[k]||0; scan.a.pain[k]=v>=9?0:v+3; drawScan(); return; }
+  const t=e.target.closest("button"); if(!t) return; const d=t.dataset;
+  if(d.scan!==undefined){ openScan(); return; }
+  if(d.endtrail!==undefined){ S.trail=null; save(); render(); return; }
+  if(d.install!==undefined){ if(installEvt){ installEvt.prompt(); installEvt=null; } return; }
+  if(d.scclose!==undefined){ closeScan(); return; }
+  if(d.scnext!==undefined){ scanNext(); return; }
+  if(d.scback!==undefined){ if(scan.br&&!scan.br.done){clearInterval(scan.br.timer);scan.br=null;} scan.i=Math.max(0,scan.i-1); scan.anim=false; drawScan(); return; }
+  if(d.sw){ const [k,v]=d.sw.split(":").map(Number); scan.a.who5[k]=v; drawScan(); return; }
+  if(d.sp){ const [k,v]=d.sp.split(":").map(Number); scan.a.pss[k]=v; drawScan(); return; }
+  if(d.sq){ scan.a.sonoQ=d.sq; drawScan(); return; }
+  if(d.sh){ scan.a.sonoH=d.sh; drawScan(); return; }
+  if(d.ss){ scan.a.sentado=d.ss; drawScan(); return; }
+  if(d.sn){ scan.a.nat=d.sn; drawScan(); return; }
+  if(d.spostC){ scan.a.post.cabeca=d.spostC; drawScan(); return; }
+  if(d.spostO){ scan.a.post.ombros=d.spostO; drawScan(); return; }
+  if(d.brtap!==undefined){ brTap(); return; }
+  if(d.trail){ if(!scan) scan={i:10,a:null}; scan.pick=d.trail; scan.anchor=null; scan.i=10; drawScan(); return; }
+  if(d.anchor){ scan.anchor=d.anchor; drawScan(); return; }
+  if(d.trailstart!==undefined){ startTrail(); return; }
+  if(d.trailback!==undefined){ scan.i=9; drawScan(); return; }
+  if(d.tab){ if(d.tab!=="perfil"&&tab==="perfil") readProfile(); tab=d.tab; confirmDel=false; render(); $("#scr").scrollTop=0; return; }
+  if(d.go){ if(d.go==="progresso"||d.go==="raiox"){tab="arvore";sub=d.go;} else tab=d.go; render(); $("#scr").scrollTop=0; return; }
+  if(d.start){ startPause(d.start,d.first!==undefined); return; }
+  if(d.begin!==undefined){ beginRun(); return; }
+  if(d.now!==undefined){ const t0=S.today; const m={n:"Pedido agora",t:nowT,size:t0&&t0.energia==="baixa"?"micro":"curta",fav:t0&&t0.tensao==="alta"?"resp":"corpo"};
+    const {p,why}=choose(m); addLog(nowT,`<b>Você pediu uma pausa</b> → <b>${esc(p.name)}</b><br><span class="w">${why}</span>`); startPause(p.id); return; }
+  if(d.focus!==undefined){ if(S.focusStart){ dayRec().f+=Math.round((Date.now()-S.focusStart)/60000); S.focusStart=null; } else S.focusStart=Date.now(); save(); render(); return; }
+  if(d.flen){ S.focusLen=+d.flen; save(); render(); return; }
+  if(d.ck!==undefined){ openCk(); return; }
+  if(d.ckclose!==undefined){ ck=null; drawCk(); if(tab==="hoje") render(); return; }
+  if(d.cka){ const qq=CK[ck.i]; let v=qq.face?+d.cka:d.cka;
+    if(qq.multi){ let a=ck.a.corpo||[]; if(v==="nada") a=["nada"]; else { a=a.filter(x=>x!=="nada"); a=a.includes(v)?a.filter(x=>x!==v):a.concat(v);} ck.a.corpo=a; }
+    else ck.a[qq.k]=v; drawCk(); return; }
+  if(d.cknext!==undefined){ const n=$("#cknote"); if(n) ck.a.nota=n.value; ck.i++; if(ck.i>=CK.length) finishCk(); drawCk(); return; }
+  if(d.ckback!==undefined){ ck.i=Math.max(0,ck.i-1); drawCk(); return; }
+  if(d.filt){ filt=d.filt; renderExplorar(); return; }
+  if(d.sub){ sub=d.sub; renderArvore(); return; }
+  if(d.who){ if(d.who==="start") who5Ans=[null,null,null,null,null]; else { const v=who5Ans.reduce((a,b)=>a+b,0)*4; S.who5.push({w:fmtDate(TODAY),v}); if(S.who5.length>3) S.who5.splice(1,1); who5Ans=null; save(); toast("Resultado salvo: "+v+" pontos"); } renderArvore(); return; }
+  if(d.whoq!=null&&d.whov!=null){ who5Ans[+d.whoq]=+d.whov; const sc=$("#scr").scrollTop; renderArvore(); $("#scr").scrollTop=sc; return; }
+  if(d.q){ if(/rotina/.test(d.q)){ send(d.q); return; } send(d.q); return; }
+  if(d.onb){ if(d.perm!==undefined) requestNotify(); if(onbStep===1){ const n=$("#oname"); if(n&&n.value.trim()) S.name=n.value.trim(); readProfile(); } if(onbStep===2) readProfile(); onbStep++; save(); render(); return; }
+  if(d.osafe){ S.safety[d.osafe]=!S.safety[d.osafe]; save(); renderOnb(); return; }
+  if(d.pest){ readProfile(); S.profile.estudo=d.pest; save(); onbStep>=0?renderOnb():renderPerfil(); return; }
+  if(d.plug){ readProfile(); S.profile.lugar=d.plug; save(); renderPerfil(); return; }
+  if(d.goal){ readProfile(); S.goals=S.goals.includes(d.goal)?S.goals.filter(x=>x!==d.goal):S.goals.concat(d.goal); save(); renderPerfil(); return; }
+  if(d.plan!==undefined){ readProfile(); const u=personalize(); toast(`Plano atualizado: ${S.plan.length} momentos`); addLog(nowT,`<b>Perfil atualizado</b> <span class="w">entendi ${u.length} pontos; plano refeito com ${S.plan.filter(m=>!m.invite).length} sugestões.</span>`); renderPerfil(); return; }
+  if(d.addrem!==undefined){ readProfile(); const tt=$("#remT").value, l=$("#remL").value.trim(); if(!tt||!l){toast("Escolha um horário e escreva o que lembrar");return;} S.reminders.push({t:tt,l}); S.plan=buildPlan(); save(); renderPerfil(); toast("Momento adicionado ao seu plano"); return; }
+  if(d.rmrem!=null){ readProfile(); S.reminders.splice(+d.rmrem,1); S.plan=buildPlan(); save(); renderPerfil(); return; }
+  if(d.narr!==undefined){ S.narr=!S.narr; save(); if(!S.narr) Voice.stop(); t.setAttribute("aria-pressed",S.narr); return; }
+  if(d.mus!==undefined){ S.music=!S.music; save(); if(S.music&&pause&&pause.phase==="run") Music.start(FAM[pause.p.fam].d); else Music.stop(); t.setAttribute("aria-pressed",S.music); return; }
+  if(d.finish!==undefined){ finishPause(); return; }
+  if(d.toggle!==undefined){ pause.running=!pause.running; if(!pause.running){Voice.stop();} drawPause(); return; }
+  if(d.swap!==undefined){ const alt=P.filter(x=>x.size===pause.p.size&&x.id!==pause.p.id&&allowed(x)); const n=alt[Math.floor(Math.random()*alt.length)]||pause.p; Music.stop(true); startPause(n.id); return; }
+  if(d.close!==undefined){ closePause(); return; }
+  if(d.rate!==undefined){ t.parentElement.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c===t)); return; }
+  if(d.alt){ const {m,p}=notif; const order=["micro","curta","media"]; const opts=P.filter(x=>x.fam===d.alt&&x.size!=="completa"&&allowed(x)).sort((a,b)=>Math.abs(order.indexOf(a.size)-order.indexOf(p.size))-Math.abs(order.indexOf(b.size)-order.indexOf(p.size)));
+    const n=opts[0]||p; addLog(m.t,`<span class="w">Trocou para ${esc(t.textContent.toLowerCase())}: ${esc(n.name)}</span>`); startPause(n.id); return; }
+  if(d.n){
+    if(d.n==="resumo"){ notif=null; renderNotif(); tab="arvore"; sub="progresso"; render(); return; }
+    if(d.n==="fechar"){ notif=null; renderNotif(); return; }
+    if(d.n==="ck"){ notif=null; renderNotif(); openCk(); return; }
+    if(d.n==="rx"){ notif=null; renderNotif(); openScan(); return; }
+    const {m,p}=notif;
+    if(d.n==="agora"){ addLog(m.t,`<span class="w">Aceitou: ${esc(p.name)}</span>`); startPause(p.id); }
+    if(d.n==="adiar"){ notif=null; renderNotif(); toast("Combinado, daqui a 10 minutos"); addLog(m.t,`<span class="w">Adiou 10 min: ${esc(p.name)}</span>`); setTimeout(()=>{ if(!pause&&!ck&&onbStep<0){notif={m:Object.assign({},m,{msg:"Lembra da pausa de 10 minutos atrás? Ainda dá tempo."}),p};renderNotif();} },600000); }
+    if(d.n==="nao"){ if(!m.invite){S.refusals++;S.refusedAt=Date.now();} save(); notif=null; renderNotif(); toast(m.invite?"Tudo bem. Fica para outro dia.":"Tudo bem. Hoje não."); addLog(m.t,`<span class="w">${m.invite?"Recusou o convite (sem contar como recusa)":"Recusou ("+S.refusals+" seguida"+(S.refusals>1?"s":"")+")"}: ${esc(p.name)}</span>`); }
+    return;
+  }
+});
+
+let installEvt=null;
+window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; if(tab==="perfil") render(); });
+const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+function applyTheme(){ const r=document.documentElement; if(S.theme==="auto") delete r.dataset.theme; else r.dataset.theme=S.theme; }
+function handleAction(a){
+  if(!a||!S.onboarded) return;
+  if(a==="ck") openCk(); else if(a==="rx") openScan(); else if(byId(a)) startPause(a);
+}
+applyTheme();
+S.plan=buildPlan(); save();
+if(!S.onboarded) onbStep=0;
+render();
+lastMin=nowT; setInterval(clockTick,30000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") clockTick(); });
+if(S.focusStart&&tab==="hoje") runFocus();
+// abrir uma prática ou o check-in a partir da notificação
+try{ const a=new URLSearchParams(location.search).get("a"); if(a){ history.replaceState(null,"",location.pathname); setTimeout(()=>handleAction(a),300); } }catch(e){}
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+  navigator.serviceWorker.addEventListener("message",e=>{ if(e.data&&e.data.a) handleAction(e.data.a); });
+}
+})();
+</script>
+</body>
+</html>
