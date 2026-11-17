@@ -63,7 +63,7 @@ p{margin:0}
   border-radius:46px;border:10px solid #0F232B;box-shadow:var(--shadow);position:relative;overflow:hidden;display:flex;flex-direction:column}
 .status{display:flex;justify-content:space-between;padding:12px 28px 2px;font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
 .scr{flex:1;overflow-y:auto;padding:6px 18px 22px;min-height:0;scrollbar-width:thin}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--surface);padding:6px 4px 12px}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);background:var(--surface);padding:6px 4px 12px}
 .tabs button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);padding:6px 0;border-radius:12px;font-weight:600}
 .tabs button[aria-current="page"]{color:var(--gold-ink);font-weight:800}
 .tabs button[aria-current="page"] svg{stroke:var(--gold)}
@@ -309,6 +309,17 @@ input[type=range]{accent-color:var(--gold);width:120px}
 .st-ok{color:var(--forest);font-weight:800}.st-adj{color:var(--gold-ink);font-weight:800}.st-no{color:var(--danger);font-weight:800}
 .toast{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);background:#023F56;color:#F4E4C4;padding:8px 14px;border-radius:999px;font-size:13px;z-index:40;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
 
+/* nutrição */
+.foodbar{display:flex;height:14px;border-radius:8px;overflow:hidden;background:var(--line)}
+.foodbar i{display:block;height:100%}
+.tabs button{font-size:10.5px}
+/* editor do plano */
+.pe-row{display:grid;grid-template-columns:96px 1fr 38px;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.pe-row.off{opacity:.55}
+.pe-row b{font-size:13.5px;display:block}
+.pe-row select{width:100%;margin-top:4px;font-size:13px}
+.pe-row input[type=time]{padding:8px 6px}
+.pe-row .badge{vertical-align:1px}
 /* Raio-X */
 :root{--up:#2E7D57;--down:#A8432F}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--up:#7FD3A6;--down:#F0A08C}}
@@ -452,7 +463,32 @@ const GOALS={
   ansiedade:{n:"Menos ansiedade",f:["resp","mente"]}, sono:{n:"Dormir melhor",f:["sono","resp"]},
   energia:{n:"Mais energia",f:["corpo","agua"]}, natureza:{n:"Mais natureza",f:["natu"]}
 };
-const SAFETY={gest:{n:"Gestação",hide:["respav","banho","ativ"]},cardio:{n:"Problema cardíaco ou de pressão",hide:["banho","respav"]},lesao:{n:"Lesão ou limitação física",hide:["ativ","danca","yoga","ativacao"]}};
+// cada cuidado esconde as práticas que não combinam com ele
+const SAFETY={
+  gest:{n:"Gestação",hide:["respav","banho","ativ","ativacao"]},
+  cardio:{n:"Problema cardíaco ou de pressão alta",hide:["banho","respav","ativ"]},
+  tontura:{n:"Tontura, labirintite ou pressão baixa",hide:["respav","banho","ativ","ativacao","danca"]},
+  respir:{n:"Asma ou problema respiratório",hide:["respav"]},
+  panico:{n:"Crises de ansiedade ou pânico",hide:["respav"]},
+  epilepsia:{n:"Epilepsia",hide:["respav"]},
+  coluna:{n:"Dor ou problema na coluna",hide:["ativ","danca","ativacao"]},
+  joelho:{n:"Dor nos joelhos ou no quadril",hide:["ativacao","ativ","danca"]},
+  lesao:{n:"Lesão ou limitação física",hide:["ativ","danca","yoga","ativacao"]},
+  cirurgia:{n:"Cirurgia recente",hide:["ativ","yoga","danca","ativacao","banho","along"]},
+  mobilidade:{n:"Mobilidade reduzida ou cadeira de rodas",hide:["caminhar","caminhada","pes","ativacao","ativ","danca","floresta"]},
+  olhos:{n:"Problema ou cirurgia nos olhos",hide:["palming"]}
+};
+const HEALTH_KW=[
+  [/gr[aá]vida|gestante|gesta[cç]/i,"gest"],[/cora[cç][aã]o|card[ií]a|press[aã]o alta|hipertens|arritmia|infarto/i,"cardio"],
+  [/tontura|labirint|vertigem|press[aã]o baixa|desmai/i,"tontura"],[/asma|bronquit|respirat|enfisema|dpoc/i,"respir"],
+  [/p[aâ]nico|crise de ansiedade|crises de ansiedade/i,"panico"],[/epileps|convuls/i,"epilepsia"],
+  [/coluna|h[eé]rnia|lombar|escoliose|ci[aá]tic/i,"coluna"],[/joelho|quadril|artrose|menisco/i,"joelho"],
+  [/les[aã]o|fratura|tor[cç]ão|tendinite|bursite|fisioterapia/i,"lesao"],[/cirurgia|operei|operad[oa]|p[oó]s-operat/i,"cirurgia"],
+  [/cadeira de rodas|muleta|andador|mobilidade/i,"mobilidade"],[/glaucoma|retina|catarata|cirurgia (nos|no) olho/i,"olhos"]
+];
+const understandHealth=t=>HEALTH_KW.filter(([re])=>re.test(t||"")).map(([,k])=>k);
+function readHealthKeep(){ const e=document.querySelector("#hnote"); if(e) S.healthNote=e.value; }
+function readHealth(){ const e=document.querySelector("#hnote"); if(!e) return []; S.healthNote=e.value; const ks=understandHealth(e.value); ks.forEach(k=>{S.safety[k]=true;}); return ks; }
 const STAGES=[["Semente",0],["Germinação",5],["Muda",15],["Árvore",30],["Flor",50],["Fruto",80],["Floresta",120]];
 const FORMS=[["Luz",0],["Presença",8],["Companheiro",25],["Anjo",60]];
 
@@ -462,7 +498,7 @@ const KEY="anjo-eywa-app-v1";
 const DEFAULT=()=>({
   v:1,onboarded:false,name:"",seeds:0,done:0,day:isoDay(new Date()),todayDone:[],perDay:5,quietFrom:"22:00",
   fams:Object.keys(FAM),steps:false,narr:true,music:true,notify:false,theme:"auto",ckTime:"08:00",refusals:0,shownToday:0,fired:[],focusStart:null,focusLen:50,
-  stats:{},goals:[],safety:{gest:false,cardio:false,lesao:false},
+  stats:{},goals:[],safety:{},healthNote:"",planEdits:{},
   profile:{texto:"",acordar:"07:00",inicio:"09:00",fim:"18:00",estudo:"noite",dormir:"23:00",lugar:"Casa"},
   days:{}, today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null
 });
@@ -651,7 +687,7 @@ function choose(m){
   const top=ranked[0]; const pct=Math.round(score(top.p)*100);
   return {p:top.p,why:[`aceite estimado ${pct}%`].concat(top.r).join(", ")};
 }
-function buildPlan(){
+function buildPlan(withOff){
   const pr=S.profile, out=[];
   const add=(t,lbl,size,fav,extra)=>out.push(Object.assign({t,lbl,size,fav},extra||{}));
   const g=S.goals[0]&&GOALS[S.goals[0]]?GOALS[S.goals[0]].f[0]:"resp";
@@ -663,13 +699,17 @@ function buildPlan(){
   add("15:00","Meio da tarde","micro","olhos",{pri:3});
   add(pr.fim,"Fim do expediente","media","natu",{pri:1});
   if(pr.estudo&&pr.estudo!=="nao"){const st={manha:"07:30",tarde:"14:00",noite:"19:30"}[pr.estudo]||"19:30"; add(plus(st,50),"Fim da aula","curta","corpo",{pri:1});}
-  (S.reminders||[]).forEach(r=>{ const l=r.l||"", f=/água|agua|beber|fruta/i.test(l)?"agua":/along|corpo|postura|costas|pescoço/i.test(l)?"corpo":/respir|calma|ansied/i.test(l)?"resp":/medit|gratid/i.test(l)?"mente":/olho|vista|tela/i.test(l)?"olhos":/dormir|sono/i.test(l)?"sono":"natu";
-    add(r.t,"Seu momento: "+l,{natu:"media",agua:"micro",sono:"completa"}[f]||"curta",f,{mine:true}); });
+  (S.reminders||[]).forEach((r,ri)=>{ const l=r.l||"", f=/água|agua|beber|fruta/i.test(l)?"agua":/along|corpo|postura|costas|pescoço/i.test(l)?"corpo":/respir|calma|ansied/i.test(l)?"resp":/medit|gratid/i.test(l)?"mente":/olho|vista|tela/i.test(l)?"olhos":/dormir|sono/i.test(l)?"sono":"natu";
+    add(r.t,"Seu momento: "+l,{natu:"media",agua:"micro",sono:"completa"}[f]||"curta",f,{mine:true,key:"r:"+ri,force:r.id}); });
   add(plus(pr.dormir,-60),"Antes de dormir","completa","sono",{invite:true,force:"sono"});
   const keep=new Set(out.filter(m=>!m.invite&&!m.mine).map((m,i)=>({m,i})).sort((a,b)=>(a.m.pri||5)-(b.m.pri||5)||a.i-b.i).slice(0,S.perDay).map(x=>x.m));
   const plan=[];
-  out.filter(m=>m.invite||m.mine||keep.has(m)).sort((a,b)=>toMin(a.t)-toMin(b.t)).forEach(m=>{ const c=choose(Object.assign({},m,{det:true})); plan.push({t:m.t,lbl:m.lbl,id:c.p.id,invite:!!m.invite,mine:!!m.mine}); });
-  return plan;
+  const E=S.planEdits||{};
+  out.filter(m=>m.invite||m.mine||keep.has(m)).forEach(m=>{ const key=m.key||"b:"+m.lbl, e=E[key]||{};
+    const id=e.id&&byId(e.id)&&allowed(byId(e.id))?e.id:choose(Object.assign({},m,{det:true})).p.id;
+    const item={t:e.t||m.t,lbl:m.lbl,id,invite:!!m.invite,mine:!!m.mine,key,off:!!e.off,edited:!!(e.t||e.id)};
+    if(!item.off||withOff) plan.push(item); });
+  return plan.sort((a,b)=>toMin(a.t)-toMin(b.t));
 }
 function planWhy(){
   const r=[]; S.goals.forEach(g=>{if(GOALS[g]) r.push(`${GOALS[g].n}: mais pausas de ${GOALS[g].f.map(f=>FAM[f].n.toLowerCase()).join(" e ")}.`);});
@@ -903,13 +943,14 @@ function raioxHTML(){
 
 /* ================= render: navegação ================= */
 const ICONS={
+  nutri:'<path d="M12 7.5c-1.2-1.8-3.2-2.6-5-2-2.6.9-3.6 4-2.6 7.6C5.4 16.9 7.8 20 9.8 20c1 0 1.4-.5 2.2-.5s1.2.5 2.2.5c2 0 4.4-3.1 5.4-6.9 1-3.6 0-6.7-2.6-7.6-1.8-.6-3.8.2-5 2z"/><path d="M12 7.5c0-2.2 1.2-3.8 3.2-4.5"/>',
   hoje:'<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/>',
   explorar:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   arvore:'<path d="M12 21v-7"/><path d="M12 14c-4 0-6-3-6-6a6 6 0 0 1 12 0c0 3-2 6-6 6z"/>',
   conversa:'<path d="M4 5h16v11H9l-5 4z"/>',
   perfil:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>'
 };
-const TABN={hoje:"Hoje",explorar:"Explorar",arvore:"Jornada",conversa:"Conversa",perfil:"Perfil"};
+const TABN={hoje:"Hoje",explorar:"Explorar",arvore:"Jornada",nutri:"Nutrição",conversa:"Conversa",perfil:"Perfil"};
 function renderTabs(){
   $("#tabs").hidden=onbStep>=0;
   $("#tabs").innerHTML=Object.keys(TABN).map(k=>`<button data-tab="${k}" ${k===tab?'aria-current="page"':""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>${TABN[k]}</button>`).join("");
@@ -917,7 +958,7 @@ function renderTabs(){
 function render(){
   renderTabs(); $("#composeSlot").innerHTML="";
   if(onbStep>=0) return renderOnb();
-  ({hoje:renderHoje,explorar:renderExplorar,arvore:renderArvore,conversa:renderConversa,perfil:renderPerfil})[tab]();
+  ({hoje:renderHoje,explorar:renderExplorar,arvore:renderArvore,conversa:renderConversa,perfil:renderPerfil,nutri:renderNutri})[tab]();
 }
 function toast(t){const p=$("#phone");let el=p.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";p.appendChild(el);}el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;},2400);}
 const pracRow=(p,why)=>`<button class="prac" data-start="${p.id}"><span class="th">${illo(p)}</span><span><b>${esc(p.name)}</b><small>${why?esc(why):FAM[p.fam].d+" · "+FAM[p.fam].n}${p.warn?" · com cuidados":""}</small></span><span class="dur">${fmt(p.sec)}</span></button>`;
@@ -960,7 +1001,7 @@ function renderHoje(){
       ${focusing?`<div class="focus-bar"><i id="fbar"></i></div><div class="meta" style="margin-top:6px" id="fleft"></div>`:`<button class="btn green small block" style="margin-top:10px" data-focus>Começar a estudar</button>`}
     </div>
     <div class="card">
-      <div class="between" style="margin-bottom:6px"><div class="eyebrow">Seu plano de hoje</div><button class="link" data-tab="perfil">Ajustar</button></div>
+      <div class="between" style="margin-bottom:6px"><div class="eyebrow">Seu plano de hoje</div><button class="link" data-planedit>Ajustar</button></div>
       <ul class="tl">${S.plan.map(m=>{const p=byId(m.id);const done=toMin(m.t)<=now;return `<li class="${done?"done":""} ${m.invite?"inv":""}"><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}${m.invite?" · convite":""}</b><span>${esc(m.lbl)} · ${fmt(p.sec)}</span></div></li>`;}).join("")}</ul>
       <div class="meta" style="margin-top:6px">Montado a partir do seu perfil. Linhas tracejadas são convites, sem cobrança.</div>
     </div>
@@ -1082,6 +1123,7 @@ function anjoSays(t){
   if(/(travad|bloque|estress|tens)/.test(l)) return {r:"Vamos soltar um pouco. Três respirações, agora.",p:"resp3"};
   if(/(cansad|sono|exaust)/.test(l)) return {r:"Seus olhos devem estar pedindo descanso. 20 segundos olhando longe?",p:"distante"};
   if(/(costas|parad|sentad|pesco)/.test(l)) return {r:"Pescoço e ombros, um minuto e meio. Se houver dor forte, vá com calma.",p:"pescoco"};
+  if(/(comida|como no dia|nutri|aliment|dieta)/.test(l)) return {r:"Me conte na aba Nutrição o que você come num dia normal. Eu mostro o que já está bom e as mudanças que mais ajudam, sem dieta.",p:null,go:"nutri"};
   if(/(rotina|perfil|meu dia)/.test(l)) return {r:"Me conte no seu Perfil como é sua rotina e o que você precisa. Eu monto o plano do seu dia a partir disso.",p:null,go:"perfil"};
   if(/(menos|chato|muita)/.test(l)){S.perDay=Math.max(1,S.perDay-2);S.plan=buildPlan();save();return {r:`Combinado. Agora são no máximo ${S.perDay} sugestões por dia.`,p:null};}
   if(/(mais suges|mais pausas)/.test(l)){S.perDay=Math.min(10,S.perDay+2);S.plan=buildPlan();save();return {r:`Feito: até ${S.perDay} sugestões por dia.`,p:null};}
@@ -1099,6 +1141,93 @@ function renderConversa(){
   const sc=$("#scr"); sc.scrollTop=sc.scrollHeight;
 }
 function send(v){S.chat.push({a:0,t:v});const r=anjoSays(v);S.chat.push({a:1,t:r.r,p:r.p,go:r.go});S.chat=S.chat.slice(-30);save();renderConversa();setTimeout(()=>{const i=$("#cin"); if(i) i.focus();},0);}
+
+/* ================= Nutrição ================= */
+// Parecer simples a partir do Guia Alimentar para a População Brasileira (Ministério da Saúde, 2014):
+// base em alimentos in natura e minimamente processados, processados com moderação, evitar ultraprocessados.
+const MEALS=[["cafe","Café da manhã","Ex.: café com leite, pão com ovo, banana"],["lanche1","Lanche da manhã","Ex.: uma fruta, iogurte"],["almoco","Almoço","Ex.: arroz, feijão, frango, salada, refrigerante"],["lanche2","Lanche da tarde","Ex.: biscoito, café"],["jantar","Jantar","Ex.: macarrão, carne moída, legumes"],["ceia","Ceia e beliscos","Ex.: chocolate, pipoca, chá"]];
+const RX={
+  ultra:/refrigerante|refri\b|coca|salgadinho|chips|biscoito|bolacha|miojo|macarr[aã]o instant[aâ]neo|nugget|salsicha|presunto|mortadela|peito de peru|salame|hamb[uú]rguer|fast ?food|pizza|lasanha congelada|congelad[oa]|suco de caixinha|suco em p[oó]|n[eé]ctar|energ[eé]tico|achocolatado|cereal matinal|sorvete|chocolate|bala\b|bolo pronto|margarina|maionese|ketchup|empanado|p[aã]o de forma|bisnaguinha|iogurte de \w+|bebida l[aá]ctea|ado[cç]ante|doce\b|lanche de lanchonete|coxinha|pastel/,
+  proc:/p[aã]o|queijo|requeij[aã]o|manteiga|conserva|atum|sardinha em lata|geleia|carne seca|bacon|tapioca/,
+  natura:/arroz|feij[aã]o|lentilha|gr[aã]o[- ]de[- ]bico|ervilha|ovos?\b|frango|peixe|carne|patinho|til[aá]pia|legumes?|verduras?|salada|alface|couve|r[uú]cula|agri[aã]o|espinafre|br[oó]colis|cenoura|abobrinha|ab[oó]bora|chuchu|beterraba|tomate|pepino|berinjela|quiabo|vagem|banana|ma[cç][aã]|mam[aã]o|laranja|tangerina|mexerica|manga|abacaxi|melancia|mel[aã]o|uva|morango|abacate|goiaba|pera|kiwi|frutas?|leite|iogurte natural|castanhas?|amendoim|nozes|am[eê]ndoas?|aveia|mandioca|aipim|macaxeira|batata|inhame|milho|cuscuz|caf[eé]|ch[aá]\b|[aá]gua|sementes?|chia|linha[cç]a|pipoca|macarr[aã]o|polenta|cuscuz/,
+  fruit:/frutas?|banana|ma[cç][aã]|mam[aã]o|laranja|tangerina|mexerica|manga|abacaxi|melancia|mel[aã]o|uva|morango|abacate|goiaba|pera|kiwi/,
+  veg:/legumes?|verduras?|salada|alface|couve|r[uú]cula|agri[aã]o|espinafre|br[oó]colis|cenoura|abobrinha|ab[oó]bora|chuchu|beterraba|tomate|pepino|berinjela|quiabo|vagem/,
+  beans:/feij[aã]o|lentilha|gr[aã]o[- ]de[- ]bico|ervilha/,
+  sweet:/refrigerante|refri\b|coca|suco de caixinha|suco em p[oó]|n[eé]ctar|energ[eé]tico|achocolatado/,
+  care:/compuls|v[oô]mit|culpa (de|por|quando) com|passo fome|n[aã]o como (pra|para) emagrecer|laxante|fico sem comer/
+};
+const rxAll=(re,t)=>(t.match(new RegExp(re.source,"gi"))||[]);
+const rxHas=(re,t)=>new RegExp(re.source,"i").test(t||"");
+function analyzeFood(f){
+  let cU=0,cP=0,cN=0; const ultraList=[];
+  MEALS.forEach(([k])=>{ let t=(f.meals[k]||"").toLowerCase();
+    const u=rxAll(RX.ultra,t); cU+=u.length; ultraList.push(...u); t=t.replace(new RegExp(RX.ultra.source,"gi")," ");
+    const p=rxAll(RX.proc,t); cP+=p.length; t=t.replace(new RegExp(RX.proc.source,"gi")," ");
+    cN+=rxAll(RX.natura,t).length; });
+  const all=MEALS.map(([k])=>f.meals[k]||"").join(" | ").toLowerCase(), tot=cU+cP+cN;
+  const skipped=MEALS.filter(([k])=>["cafe","almoco","jantar"].includes(k)&&!(f.meals[k]||"").trim()).map(([,l])=>l.toLowerCase());
+  const hasFruit=rxHas(RX.fruit,all), hasVeg=rxHas(RX.veg,all), beans=rxHas(RX.beans,all), sweet=rxHas(RX.sweet,all);
+  const good=[], tips=[];
+  if(beans&&/arroz/.test(all)) good.push("Arroz com feijão: uma combinação completa e muito brasileira.");
+  if(hasFruit) good.push("Você já come fruta no dia.");
+  if(hasVeg) good.push("Tem legumes ou verduras no seu prato.");
+  if(f.agua>=8) good.push(`${f.agua} copos de água por dia: ótimo.`);
+  if(tot&&cN/tot>=.65&&cN>=4) good.push("A maior parte do que você come é comida de verdade, feita de alimentos frescos.");
+  if(f.tela==="nunca") good.push("Comer sem tela ajuda a perceber quando você já está satisfeito.");
+  if(!skipped.length) good.push("Você faz as três refeições principais.");
+  if(sweet) tips.push({s:90,t:"Trocar a bebida adoçada",d:"Refrigerante, suco de caixinha e achocolatado têm muito açúcar. Comece trocando a do almoço por água, água com limão ou suco da própria fruta.",p:"agua"});
+  if(cU>=2) tips.push({s:60+cU*5,t:"Menos ultraprocessados",d:`Apareceram ${cU} itens ultraprocessados, como ${[...new Set(ultraList.map(x=>x.toLowerCase()))].slice(0,3).join(", ")}. Troque um por dia por algo feito de alimento fresco: fruta, castanhas, pão com ovo ou iogurte natural.`,p:"lanche"});
+  if(!hasVeg) tips.push({s:75,t:"Legumes e verduras no almoço",d:"Metade do prato com salada ou legumes traz fibras, vitaminas e mais saciedade.",p:"lanche"});
+  else if((f.meals.almoco||"").trim()&&!rxHas(RX.veg,f.meals.almoco)) tips.push({s:45,t:"Salada também no almoço",d:"Você já come legumes ou verduras; levar uma parte para o almoço deixa o prato mais completo.",p:"lanche"});
+  if(!hasFruit) tips.push({s:70,t:"Uma fruta por dia, para começar",d:"No lanche da tarde ou como sobremesa. Banana, maçã ou a fruta da estação, que é mais barata e saborosa.",p:"lanche"});
+  if(f.agua<6) tips.push({s:62+(6-f.agua)*4,t:"Mais água ao longo do dia",d:`Você bebe cerca de ${f.agua} ${f.agua===1?"copo":"copos"}. Deixe uma garrafa à vista e beba um copo a cada pausa do ANJO.`,p:"agua",water:true});
+  if(skipped.length) tips.push({s:55,t:`Não pular o ${skipped[0]}`,d:"Comer em horários regulares ajuda a ter energia e evita beliscar depois. Se não tiver fome, algo leve já ajuda.",p:"lanche"});
+  if(f.tela==="sempre") tips.push({s:50,t:"Uma refeição sem tela",d:"Comer prestando atenção ajuda a perceber a saciedade e o sabor. Comece por uma refeição por dia.",p:"lanche"});
+  if(!beans) tips.push({s:40,t:"Feijão e outras leguminosas",d:"Feijão, lentilha ou grão-de-bico algumas vezes por semana trazem proteína e fibra a um custo baixo.",p:"lanche"});
+  if(rxHas(RX.ultra,f.meals.ceia)) tips.push({s:48,t:"Beliscos mais leves à noite",d:"À noite, troque o doce ou salgadinho por fruta, pipoca feita em casa ou um chá.",p:"sono"});
+  tips.sort((a,b)=>b.s-a.s);
+  return {cN,cP,cU,tot,pct:tot?{n:Math.round(cN/tot*100),p:Math.round(cP/tot*100),u:Math.round(cU/tot*100)}:null,good,tips:tips.slice(0,3),care:rxHas(RX.care,all+" "+(f.nota||""))};
+}
+let nutEdit=false;
+function readFoodForm(){
+  const f=S.food||{meals:{},agua:4,tela:"asvezes",nota:""}; f.meals=f.meals||{};
+  MEALS.forEach(([k])=>{ const e=$("#fm-"+k); if(e) f.meals[k]=e.value; });
+  const n=$("#fm-nota"); if(n) f.nota=n.value; S.food=f; return f;
+}
+function renderNutri(){
+  const f=S.food||{meals:{},agua:4,tela:"asvezes",nota:""}, r=f.r;
+  const head=`<div class="appbar">${brand(32)}<span class="badge">nutrição</span></div><h1 style="font-size:24px;margin:2px 0 4px">Sua alimentação</h1>`;
+  if(r&&!nutEdit){
+    const prev=(S.foodHist||[]).length>1?S.foodHist[S.foodHist.length-2]:null;
+    $("#scr").innerHTML=head+`<p class="meta" style="margin-bottom:12px">Parecer do ANJO sobre um dia normal seu · ${fmtDate(f.date||TODAY)}</p>
+    <div class="stack">
+      ${r.pct?`<div class="card"><div class="eyebrow" style="margin-bottom:8px">Seu dia em alimentos</div>
+        <div class="foodbar" role="img" aria-label="${r.pct.n}% alimentos frescos, ${r.pct.p}% processados, ${r.pct.u}% ultraprocessados"><i style="width:${r.pct.n}%;background:var(--forest)"></i><i style="width:${r.pct.p}%;background:var(--gold)"></i><i style="width:${r.pct.u}%;background:var(--danger)"></i></div>
+        <div class="legend" style="margin-top:8px"><span><i style="background:var(--forest)"></i>${r.pct.n}% comida fresca</span><span><i style="background:var(--gold)"></i>${r.pct.p}% processados</span><span><i style="background:var(--danger)"></i>${r.pct.u}% ultraprocessados</span></div>
+        ${prev&&prev.n!=null?`<p class="meta" style="margin-top:8px">Comida fresca: ${prev.n}% → ${r.pct.n}% desde ${fmtDate(prev.date)}.</p>`:""}</div>`:""}
+      ${r.care?`<div class="crisis">Se a relação com a comida estiver pesada, conversar com um nutricionista ou psicólogo ajuda muito. Em sofrimento intenso, ligue 188 (CVV).</div>`:""}
+      ${S.safety&&S.safety.gest?`<div class="crisis" style="border-left-color:var(--gold)">Na gestação, siga as orientações do seu pré-natal sobre alimentação.</div>`:""}
+      ${r.good.length?`<div class="card"><div class="eyebrow" style="margin-bottom:4px">O que já está bom</div><ul class="why">${r.good.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div>`:""}
+      <div class="eyebrow" style="margin-top:4px">${r.tips.length?"As mudanças que mais ajudam":"Continue assim"}</div>
+      ${r.tips.map((t,i)=>`<div class="lv"><span class="n">${i+1}ª mudança</span><h3>${esc(t.t)}</h3><p>${esc(t.d)}</p>
+        <div class="row" style="margin-top:8px">${t.water?`<button class="btn gold small" data-addwater>Lembretes de água no meu plano</button>`:""}${t.p&&byId(t.p)&&allowed(byId(t.p))?`<button class="btn ghost small" data-start="${t.p}">${esc(byId(t.p).name)} · ${fmt(byId(t.p).sec)}</button>`:""}</div></div>`).join("")||`<p class="meta">Seu dia já segue as principais recomendações. Mantenha a variedade.</p>`}
+      <button class="btn green block" data-nutedit>Atualizar o que eu como</button>
+      <p class="note">Orientações gerais baseadas no Guia Alimentar para a População Brasileira, do Ministério da Saúde. Não substituem um nutricionista. Com diabetes, alergias, gestação ou outra condição de saúde, siga a orientação do seu profissional.</p>
+    </div>`;
+    return;
+  }
+  $("#scr").innerHTML=head+`<p class="meta" style="margin-bottom:12px">Conte o que você come num dia normal. Não precisa medir nada: escreva do seu jeito. O ANJO dá um parecer simples, sem dieta e sem contar calorias.</p>
+  <div class="stack">
+    ${MEALS.map(([k,l,ph])=>`<div class="field"><label for="fm-${k}">${l}</label><textarea id="fm-${k}" rows="2" style="min-height:60px" placeholder="${ph}">${esc(f.meals[k]||"")}</textarea></div>`).join("")}
+    <div class="card"><div class="between"><div><b>Copos de água por dia</b><div class="meta">Um copo tem cerca de 250 ml</div></div>
+      <div class="row" style="flex-wrap:nowrap"><button class="iconbtn" data-agua="-1" aria-label="Menos um copo">−</button><b style="min-width:26px;text-align:center;font-size:18px;font-variant-numeric:tabular-nums">${f.agua}</b><button class="iconbtn" data-agua="1" aria-label="Mais um copo">+</button></div></div></div>
+    <div class="field"><label>Você come olhando o celular ou a TV?</label><div class="chips">${[["sempre","Quase sempre"],["asvezes","Às vezes"],["nunca","Quase nunca"]].map(([v,l])=>`<button class="chip" data-tela="${v}" aria-pressed="${f.tela===v}">${l}</button>`).join("")}</div></div>
+    <div class="field"><label for="fm-nota">Quer contar mais alguma coisa? (opcional)</label><textarea id="fm-nota" rows="2" style="min-height:60px" placeholder="Ex.: como rápido no trabalho, sinto muita fome à noite">${esc(f.nota||"")}</textarea></div>
+    <button class="btn gold block" data-nutsave>Ver o parecer do ANJO</button>
+    ${r?`<button class="btn ghost block" data-nutcancel>Voltar ao parecer</button>`:""}
+    <p class="note">Fica só no seu aparelho.</p>
+  </div>`;
+}
 
 /* ================= Perfil e ajustes ================= */
 function profileFields(){
@@ -1130,12 +1259,15 @@ function renderPerfil(){
     <div class="card"><div class="row" style="gap:10px;flex-wrap:nowrap">${anjoLogo(40)}<div><div class="eyebrow">O que o ANJO entendeu</div></div></div>
       <div class="understood" style="margin-top:10px">${u.length?u.map(x=>`<span>${esc(x.l)}</span>`).join(""):`<span>Conte um pouco mais no texto acima</span>`}</div>
       <div class="eyebrow" style="margin-top:14px">Como formatei seu dia</div><ul class="why">${planWhy().map(r=>`<li>${esc(r)}</li>`).join("")}</ul>
-      <button class="link" style="margin-top:10px" data-tab="hoje">Ver o plano de hoje ›</button></div>
+      <div class="row" style="margin-top:10px;gap:14px"><button class="link" data-planedit>Ajustar meu plano</button><button class="link" data-tab="hoje">Ver o plano de hoje ›</button></div></div>
     <div class="card"><div class="eyebrow" style="margin-bottom:4px">Meus momentos</div>
       ${(S.reminders||[]).map((r,i)=>`<div class="set"><span><b style="font-variant-numeric:tabular-nums">${r.t}</b> · ${esc(r.l)}</span><button class="link" data-rmrem="${i}">Remover</button></div>`).join("")}
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="time" id="remT" value="17:00" style="width:110px" aria-label="Horário"><input type="text" id="remL" placeholder="Ex.: caminhar" aria-label="O que lembrar"><button class="btn ghost small" data-addrem>Adicionar</button></div></div>
-    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Segurança</div><p class="meta">Só servem para esconder práticas inadequadas. Ficam no aparelho.</p>
-      ${Object.keys(SAFETY).map(k=>`<div class="set"><label for="sf-${k}">${SAFETY[k].n}</label><input type="checkbox" class="switch" id="sf-${k}" data-safe="${k}" ${S.safety[k]?"checked":""}></div>`).join("")}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Cuidados de saúde</div><p class="meta">Servem só para esconder práticas que não combinam com você. Ficam no aparelho.</p>
+      <div class="chips" style="margin-top:10px">${Object.keys(SAFETY).map(k=>`<button class="chip" data-psafe="${k}" aria-pressed="${!!S.safety[k]}">${SAFETY[k].n}</button>`).join("")}</div>
+      <div class="field" style="margin-top:12px"><label for="hnote">Com suas palavras</label><textarea id="hnote" placeholder="Ex.: tenho asma leve, operei o joelho em março e às vezes sinto tontura">${esc(S.healthNote||"")}</textarea></div>
+      <button class="btn ghost small" style="margin-top:8px" data-hsave>Salvar cuidados</button>
+      ${P.filter(hidden).length?`<p class="meta" style="margin-top:8px">${P.filter(hidden).length} práticas escondidas por segurança.</p>`:""}</div>
     <div class="card"><div class="eyebrow" style="margin-bottom:4px">Experiência</div>
       <div class="set"><label for="sNarr">Narração por voz<small>Todas as práticas são guiadas em áudio</small></label><input type="checkbox" class="switch" id="sNarr" ${S.narr?"checked":""}></div>
       <div class="set"><label for="sMusic">Música de fundo<small>Trilha suave em cada prática</small></label><input type="checkbox" class="switch" id="sMusic" ${S.music?"checked":""}></div>
@@ -1164,13 +1296,42 @@ function renderPerfil(){
   $("#themeSel").onchange=e=>{ S.theme=e.target.value; save(); applyTheme(); };
   $("#sNarr").onchange=e=>{S.narr=e.target.checked;save();};
   $("#sMusic").onchange=e=>{S.music=e.target.checked;save();};
-  document.querySelectorAll("[data-safe]").forEach(el=>el.onchange=()=>{S.safety[el.dataset.safe]=el.checked;S.plan=buildPlan();save();});
+  
   document.querySelectorAll("[data-fam]").forEach(el=>el.onchange=()=>{const f=el.dataset.fam;S.fams=el.checked?[...new Set(S.fams.concat(f))]:S.fams.filter(x=>x!==f);if(!S.fams.length){S.fams=[f];el.checked=true;toast("Mantenha ao menos uma família");}S.plan=buildPlan();save();});
   $("#exportBtn").onclick=()=>{ const data=JSON.stringify({app:"ANJO EYWA",formato:1,exportadoEm:new Date().toISOString(),dados:S},null,2);
     try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download="anjo-meus-dados-"+TODAY+".json"; document.body.appendChild(a); a.click(); a.remove(); toast("Arquivo com seus dados salvo"); }catch(e){ const o=$("#exportOut"); o.hidden=false; o.textContent=data; } };
   if(confirmDel){$("#delYes").onclick=()=>{try{localStorage.removeItem(KEY);}catch(e){} S=DEFAULT();S.plan=buildPlan();save();confirmDel=false;notif=null;renderNotif();onbStep=0;tab="hoje";render();};
     $("#delNo").onclick=()=>{confirmDel=false;renderPerfil();};}
   else $("#delBtn").onclick=()=>{confirmDel=true;renderPerfil();};
+}
+
+/* ================= Editor do plano ================= */
+let pe=null;
+const pracOptions=sel=>Object.keys(SIZE).map(sz=>`<optgroup label="${SIZE[sz].n}">${P.filter(p=>p.size===sz&&allowed(p)).map(p=>`<option value="${p.id}" ${p.id===sel?"selected":""}>${esc(p.name)} · ${fmt(p.sec)}</option>`).join("")}</optgroup>`).join("");
+function planSet(key,patch){ // muda um momento do plano
+  if(key.startsWith("r:")){ const r=S.reminders[+key.slice(2)]; if(r) Object.assign(r,patch.t?{t:patch.t}:{},patch.id?{id:patch.id}:{}); }
+  else { S.planEdits=S.planEdits||{}; S.planEdits[key]=Object.assign({},S.planEdits[key],patch); }
+  S.plan=buildPlan(); save(); drawPlanEdit();
+}
+function openPlanEdit(){ pe={}; drawPlanEdit(); }
+function drawPlanEdit(){
+  let el=$("#phone .overlay.pe"); if(!pe){ if(el) el.remove(); return; }
+  const first=!el;
+  if(!el){ el=document.createElement("div"); el.className="overlay light pe"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Ajustar meu plano"); $("#phone").appendChild(el); }
+  const st=el.scrollTop, items=buildPlan(true);
+  el.innerHTML=`<div class="scw"><div class="ov-top"><span class="eyebrow">Meu plano de rotina</span><button class="iconbtn" data-peclose aria-label="Fechar">${icon("x")}</button></div>
+    <div><h1 style="font-size:23px">Ajustar meu plano</h1><p class="meta" style="margin-top:4px">Mude o horário, troque a prática ou desligue o que não quer. O ANJO segue o seu jeito.</p></div>
+    <div>${items.map(m=>`<div class="pe-row ${m.off?"off":""}">
+      <input type="time" value="${m.t}" data-pet="${m.key}" aria-label="Horário de ${esc(m.lbl)}" ${m.off?"disabled":""}>
+      <div style="min-width:0"><b>${esc(m.lbl)}${m.invite?" · convite":""}${m.edited?` <span class="badge">ajustado</span>`:""}</b><select data-pep="${m.key}" aria-label="Prática de ${esc(m.lbl)}" ${m.off?"disabled":""}>${pracOptions(m.id)}</select></div>
+      <button class="iconbtn" data-peoff="${m.key}" aria-label="${m.mine?"Remover":m.off?"Ligar de novo":"Desligar"} ${esc(m.lbl)}" title="${m.mine?"Remover":m.off?"Ligar de novo":"Desligar"}">${m.off?"↺":icon("x")}</button></div>`).join("")}</div>
+    <div class="card stack"><div class="eyebrow">Adicionar um momento</div>
+      <div class="row" style="flex-wrap:nowrap"><input type="time" id="peT" value="${plus(nowT,60)}" style="width:110px" aria-label="Horário"><input type="text" id="peL" placeholder="Nome, ex.: pausa do café" aria-label="Nome do momento"></div>
+      <select id="peP" aria-label="Prática">${pracOptions("agua")}</select>
+      <button class="btn green small" data-peadd>Adicionar ao plano</button></div>
+    <p class="note">Sugestões automáticas respeitam o limite de ${S.perDay} por dia (mude no Perfil). Momentos seus e convites ficam fora do limite.</p>
+    <div class="foot"><button class="btn gold" data-peclose>Pronto</button><button class="btn ghost" data-pereset>Voltar ao plano sugerido</button></div></div>`;
+  el.scrollTop=first?0:st;
 }
 
 /* ================= Boas-vindas ================= */
@@ -1190,16 +1351,18 @@ function renderOnb(){
     <div class="field"><label for="pinicio">Começo a trabalhar</label><input type="time" id="pinicio" value="${S.profile.inicio}"></div><div class="field"><label for="pfim">Termino</label><input type="time" id="pfim" value="${S.profile.fim}"></div></div>
     <div class="field" style="text-align:left;width:100%"><label>Quando estudo</label><div class="chips">${[["manha","Manhã"],["tarde","Tarde"],["noite","Noite"],["nao","Não estudo"]].map(([v,l])=>`<button class="chip" data-pest="${v}" aria-pressed="${S.profile.estudo===v}">${l}</button>`).join("")}</div></div>
     <div class="foot"><button class="btn gold" data-onb="next">Continuar</button></div>`;
-  if(onbStep===3) h=`${prog}${anjo(70,0)}<h1>Algum cuidado de saúde?</h1><p>Só para esconder práticas que não combinam com você. Fica no aparelho.</p>
-    <div class="opts" style="width:100%">${Object.keys(SAFETY).map(k=>`<button class="opt" data-osafe="${k}" aria-pressed="${!!S.safety[k]}">${SAFETY[k].n}</button>`).join("")}</div>
-    <div class="foot"><button class="btn gold" data-onb="next">Continuar</button></div>`;
+  if(onbStep===3){ const any=Object.keys(SAFETY).some(k=>S.safety[k]);
+    h=`${prog}${anjo(70,0)}<h1>Algum cuidado de saúde?</h1><p>Marque o que vale para você. Serve só para esconder práticas que não combinam. Fica no seu aparelho.</p>
+    <div class="chips" style="justify-content:center">${Object.keys(SAFETY).map(k=>`<button class="chip" data-osafe="${k}" aria-pressed="${!!S.safety[k]}">${SAFETY[k].n}</button>`).join("")}<button class="chip" data-osafe="none" aria-pressed="${!any&&S.healthNone===true}">Nenhum</button></div>
+    <div class="field"><label for="hnote">Quer contar com suas palavras? (opcional)</label><textarea id="hnote" placeholder="Ex.: tenho asma leve, operei o joelho em março e às vezes sinto tontura">${esc(S.healthNote||"")}</textarea></div>
+    <div class="foot"><button class="btn gold" data-onb="next">Continuar</button></div>`; }
   if(onbStep===4) h=`${prog}${anjo(70,0)}<h1>Posso te lembrar das pausas?</h1>
     <ul class="promise"><li><b>Lembretes no aparelho.</b> O aviso chega na hora certa, com “fazer agora”, “daqui a 10 min” e “hoje não”.</li><li>Funciona melhor com o ANJO instalado na tela inicial. Dá para mudar quando quiser no Perfil.</li></ul>
     <div class="foot"><button class="btn green" data-onb="next" data-perm>Permitir lembretes</button><button class="btn ghost" data-onb="next">Agora não</button></div>`;
   if(onbStep===5){ const u=personalize(); h=`${prog}${anjo(70,1)}<h1>Montei seu plano</h1>
     <div class="understood" style="justify-content:center">${u.map(x=>`<span>${esc(x.l)}</span>`).join("")||"<span>rotina padrão</span>"}</div>
     <ul class="tl" style="width:100%;text-align:left">${S.plan.slice(0,5).map(m=>{const p=byId(m.id);return `<li><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}</b><span>${esc(m.lbl)}</span></div></li>`;}).join("")}</ul>
-    <div class="foot"><button class="btn gold" data-onb="next">Perfeito</button></div>`; }
+    <div class="foot"><button class="btn gold" data-onb="next">Perfeito</button><button class="btn ghost" data-planedit>Ajustar o plano</button></div>`; }
   if(onbStep===6) h=`${prog}${anjo(110,0)}<h1>Sua primeira pausa</h1><p>15 segundos, com narração e música, para mostrar como funciona e plantar sua primeira semente.</p>
     <div class="foot"><button class="btn gold" data-start="mandibula" data-first>Fazer agora</button></div>`;
   $("#scr").innerHTML=`<div class="onb">${h}</div>`;
@@ -1390,11 +1553,28 @@ function renderNotif(){
 }
 
 /* ================= eventos ================= */
+document.addEventListener("change",e=>{ const t=e.target;
+  if(t.dataset&&t.dataset.pet&&t.value) planSet(t.dataset.pet,{t:t.value});
+  if(t.dataset&&t.dataset.pep) planSet(t.dataset.pep,{id:t.value}); });
 document.addEventListener("keydown",e=>{ const g=e.target.closest&&e.target.closest("g[data-reg]"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); g.dispatchEvent(new MouseEvent("click",{bubbles:true})); } });
 document.addEventListener("click",e=>{
   const rg=e.target.closest("[data-reg]"); if(rg&&scan&&scan.i===5){ const k=rg.dataset.reg, v=scan.a.pain[k]||0; scan.a.pain[k]=v>=9?0:v+3; drawScan(); return; }
   const t=e.target.closest("button"); if(!t) return; const d=t.dataset;
   if(d.scan!==undefined){ openScan(); return; }
+  if(d.agua){ const f=readFoodForm(); f.agua=Math.max(0,Math.min(20,(f.agua||0)+(+d.agua))); save(); renderNutri(); return; }
+  if(d.tela){ const f=readFoodForm(); f.tela=d.tela; save(); renderNutri(); return; }
+  if(d.nutsave!==undefined){ const f=readFoodForm(); if(!MEALS.some(([k])=>(f.meals[k]||"").trim())){ toast("Escreva pelo menos uma refeição"); return; }
+    f.date=TODAY; f.r=analyzeFood(f); S.foodHist=(S.foodHist||[]).concat([{date:TODAY,n:f.r.pct?f.r.pct.n:null}]).slice(-10); nutEdit=false; save(); renderNutri(); $("#scr").scrollTop=0; return; }
+  if(d.nutedit!==undefined){ nutEdit=true; renderNutri(); $("#scr").scrollTop=0; return; }
+  if(d.nutcancel!==undefined){ nutEdit=false; renderNutri(); $("#scr").scrollTop=0; return; }
+  if(d.addwater!==undefined){ let n=0; ["10:00","14:00","16:30"].forEach(t=>{ if(!S.reminders.some(r=>r.t===t&&r.id==="agua")){ S.reminders.push({t,l:"Copo de água",id:"agua"}); n++; } }); S.plan=buildPlan(); save(); toast(n?"Lembretes de água às 10:00, 14:00 e 16:30":"Os lembretes de água já estão no seu plano"); return; }
+  if(d.planedit!==undefined){ if(onbStep>=0) readProfile(); openPlanEdit(); return; }
+  if(d.peclose!==undefined){ pe=null; drawPlanEdit(); render(); return; }
+  if(d.peoff){ const k=d.peoff; if(k.startsWith("r:")){ S.reminders.splice(+k.slice(2),1); S.plan=buildPlan(); save(); drawPlanEdit(); } else planSet(k,{off:!((S.planEdits||{})[k]||{}).off}); return; }
+  if(d.peadd!==undefined){ const tt=$("#peT").value, id=$("#peP").value, l=$("#peL").value.trim()||byId(id).name; if(!tt){ toast("Escolha um horário"); return; } S.reminders.push({t:tt,l,id}); S.plan=buildPlan(); save(); drawPlanEdit(); toast("Momento adicionado"); return; }
+  if(d.pereset!==undefined){ S.planEdits={}; S.plan=buildPlan(); save(); drawPlanEdit(); toast("Plano sugerido de volta"); return; }
+  if(d.psafe){ readHealthKeep(); S.safety[d.psafe]=!S.safety[d.psafe]; S.plan=buildPlan(); save(); renderPerfil(); return; }
+  if(d.hsave!==undefined){ const ks=readHealth(); S.plan=buildPlan(); save(); renderPerfil(); toast(ks.length?"Entendi: "+ks.map(k=>SAFETY[k].n.toLowerCase()).join(", "):"Cuidados salvos"); return; }
   if(d.endtrail!==undefined){ S.trail=null; save(); render(); return; }
   if(d.install!==undefined){ if(installEvt){ installEvt.prompt(); installEvt=null; } return; }
   if(d.scclose!==undefined){ closeScan(); return; }
@@ -1413,7 +1593,7 @@ document.addEventListener("click",e=>{
   if(d.anchor){ scan.anchor=d.anchor; drawScan(); return; }
   if(d.trailstart!==undefined){ startTrail(); return; }
   if(d.trailback!==undefined){ scan.i=9; drawScan(); return; }
-  if(d.tab){ if(d.tab!=="perfil"&&tab==="perfil") readProfile(); tab=d.tab; confirmDel=false; render(); $("#scr").scrollTop=0; return; }
+  if(d.tab){ if(d.tab!=="perfil"&&tab==="perfil") readProfile(); if(tab==="nutri"&&nutEdit) readFoodForm(), save(); tab=d.tab; confirmDel=false; render(); $("#scr").scrollTop=0; return; }
   if(d.go){ if(d.go==="progresso"||d.go==="raiox"){tab="arvore";sub=d.go;} else tab=d.go; render(); $("#scr").scrollTop=0; return; }
   if(d.start){ startPause(d.start,d.first!==undefined); return; }
   if(d.begin!==undefined){ beginRun(); return; }
@@ -1433,8 +1613,8 @@ document.addEventListener("click",e=>{
   if(d.who){ if(d.who==="start") who5Ans=[null,null,null,null,null]; else { const v=who5Ans.reduce((a,b)=>a+b,0)*4; S.who5.push({w:fmtDate(TODAY),v}); if(S.who5.length>3) S.who5.splice(1,1); who5Ans=null; save(); toast("Resultado salvo: "+v+" pontos"); } renderArvore(); return; }
   if(d.whoq!=null&&d.whov!=null){ who5Ans[+d.whoq]=+d.whov; const sc=$("#scr").scrollTop; renderArvore(); $("#scr").scrollTop=sc; return; }
   if(d.q){ if(/rotina/.test(d.q)){ send(d.q); return; } send(d.q); return; }
-  if(d.onb){ if(d.perm!==undefined) requestNotify(); if(onbStep===1){ const n=$("#oname"); if(n&&n.value.trim()) S.name=n.value.trim(); readProfile(); } if(onbStep===2) readProfile(); onbStep++; save(); render(); return; }
-  if(d.osafe){ S.safety[d.osafe]=!S.safety[d.osafe]; save(); renderOnb(); return; }
+  if(d.onb){ if(d.perm!==undefined) requestNotify(); if(onbStep===1){ const n=$("#oname"); if(n&&n.value.trim()) S.name=n.value.trim(); readProfile(); } if(onbStep===2) readProfile(); if(onbStep===3){ const ks=readHealth(); if(ks.length) toast("Entendi: "+ks.map(k=>SAFETY[k].n.toLowerCase()).join(", ")); } onbStep++; save(); render(); return; }
+  if(d.osafe){ const e=document.querySelector("#hnote"); if(e) S.healthNote=e.value; if(d.osafe==="none"){ S.safety={}; S.healthNone=true; } else { S.safety[d.osafe]=!S.safety[d.osafe]; S.healthNone=false; } save(); renderOnb(); return; }
   if(d.pest){ readProfile(); S.profile.estudo=d.pest; save(); onbStep>=0?renderOnb():renderPerfil(); return; }
   if(d.plug){ readProfile(); S.profile.lugar=d.plug; save(); renderPerfil(); return; }
   if(d.goal){ readProfile(); S.goals=S.goals.includes(d.goal)?S.goals.filter(x=>x!==d.goal):S.goals.concat(d.goal); save(); renderPerfil(); return; }
