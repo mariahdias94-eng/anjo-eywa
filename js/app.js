@@ -5,6 +5,7 @@ import {GRAD,angelFigure,anjoLogo,fig,sun,tree,glow,illo,treeSVG,faceSVG,posture
 import {Voice,Music,setMediaSettings} from "./core/midia.js";
 import {scoreScan,levers,flags,avgDims,deltas} from "./saude/raiox.js";
 import {analyzeFood} from "./saude/nutricao.js";
+import {createStore} from "./core/armazenamento.js";
 setMediaSettings(()=>({narr:S.narr,music:S.music}));
 /* ================= utilidades ================= */
 let TODAY=isoDay(new Date());
@@ -21,7 +22,9 @@ function readHealth(){ const e=document.querySelector("#hnote"); if(!e) return [
 
 /* ================= estado ================= */
 // Formato de dados v1 do ANJO web. Ao migrar para o app com contas, "Exportar meus dados" gera este JSON para importar.
-const KEY="anjo-eywa-app-v1";
+// O site oficial e a prévia guardam dados separados, mesmo no mesmo navegador.
+const NS=location.pathname.includes("anjo-eywa-preview")?"anjo-previa":"anjo-eywa";
+const store=createStore(NS,{legacyKeys:["anjo-eywa-app-v1"],deleteLegacyOnPin:NS==="anjo-eywa"});
 const DEFAULT=()=>({
   v:1,onboarded:false,name:"",seeds:0,done:0,day:isoDay(new Date()),todayDone:[],perDay:5,quietFrom:"22:00",
   fams:Object.keys(FAM),steps:false,narr:true,music:true,notify:false,theme:"auto",ckTime:"08:00",refusals:0,shownToday:0,fired:[],focusStart:null,focusLen:50,
@@ -30,8 +33,11 @@ const DEFAULT=()=>({
   days:{}, today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null
 });
 let S;
-try{S=Object.assign(DEFAULT(),JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(e){S=DEFAULT();}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+S=DEFAULT();
+// só salva depois que os dados reais foram carregados (evita sobrescrever com o estado vazio)
+let ready=false, saveT=null;
+function save(){ if(!ready) return; clearTimeout(saveT); saveT=setTimeout(()=>{ store.save(S); },250); }
+function saveNow(){ clearTimeout(saveT); return ready?store.save(S):Promise.resolve(false); }
 // histórico por dia: pausas, minutos de estudo e humor do check-in
 const dayRec=(d=TODAY)=>(S.days[d]=S.days[d]||{p:0,f:0,h:null});
 // virada do dia: zera o que é "de hoje" e guarda o resto no histórico
@@ -42,7 +48,6 @@ function rollover(){
   if(S.focusStart&&Date.now()-S.focusStart>S.focusLen*60000) S.focusStart=null;
   save(); return true;
 }
-rollover();
 
 let tab="hoje", sub="arvore", onbStep=-1, pause=null, notif=null, ck=null, toastT=null, nowT=nowStr(), filt="todas", q="", who5Ans=null, confirmDel=false;
 function addLog(){} // o registro do motor existia só no painel de demonstração
@@ -557,8 +562,11 @@ function renderPerfil(){
       <div class="set"><label for="themeSel">Aparência<small>O modo noturno usa o azul petróleo</small></label><select id="themeSel">${[["auto","Automática"],["light","Clara"],["dark","Noturna"]].map(([v,l])=>`<option value="${v}" ${S.theme===v?"selected":""}>${l}</option>`).join("")}</select></div>
       <div class="set"><label for="pSteps">Passos do celular<small>Chega na versão para as lojas de apps</small></label><input type="checkbox" class="switch" id="pSteps" disabled></div>
       <div class="set"><label for="pCal">Calendário<small>Chega na fase 2</small></label><input type="checkbox" class="switch" id="pCal" disabled></div></div>
-    <div class="card"><div class="eyebrow" style="margin-bottom:8px">Privacidade</div>
-      <p class="meta" style="margin-bottom:10px">Nenhum dado individual é vendido ou compartilhado. Parceiros só veem números agregados e anônimos.</p>
+    <div class="card"><div class="eyebrow" style="margin-bottom:8px">Privacidade e segurança</div>
+      <p class="meta">Seus dados ficam só neste aparelho. Nada é enviado para servidores, e ninguém da EYWA tem acesso a eles.</p>
+      <div class="set"><label>Bloqueio com PIN<small>${store.hasPin()?"Ativo: seus dados estão criptografados neste aparelho":"Desligado. Recomendado se outras pessoas usam este celular"}</small></label>${store.hasPin()?`<span class="badge" style="background:var(--forest);color:#fff">ativo</span>`:`<button class="btn gold small" data-pinset>Ativar</button>`}</div>
+      ${store.hasPin()?(confirmPinOff?`<p class="meta" style="margin:6px 0">Sem o PIN, os dados deixam de ser criptografados. Tirar mesmo assim?</p><div class="row"><button class="btn small" style="background:var(--danger);color:#fff" data-pinoffyes>Tirar o PIN</button><button class="btn ghost small" data-pinoffno>Manter</button></div>`:`<div class="row" style="margin:6px 0 4px"><button class="btn ghost small" data-pinset>Trocar PIN</button><button class="btn ghost small" data-lock>Travar agora</button><button class="btn ghost small" data-pinoff>Tirar PIN</button></div>`):""}
+      <p class="note" style="margin:6px 0 12px">Com PIN, o app trava sozinho depois de 5 minutos fora dele. Se esquecer o PIN, não há como recuperar os dados.</p>
       <div class="row"><button class="btn ghost small" id="exportBtn">Exportar meus dados</button>
       ${confirmDel?`<button class="btn small" style="background:var(--danger);color:#fff" id="delYes">Apagar tudo agora</button><button class="btn ghost small" id="delNo">Cancelar</button>`:`<button class="btn ghost small" id="delBtn">Apagar meus dados</button>`}</div>
       <pre id="exportOut" hidden style="white-space:pre-wrap;font-size:11px;max-height:160px;overflow:auto;background:var(--card-2);padding:10px;border-radius:12px;margin:10px 0 0"></pre></div>
@@ -575,13 +583,13 @@ function renderPerfil(){
   document.querySelectorAll("[data-fam]").forEach(el=>el.onchange=()=>{const f=el.dataset.fam;S.fams=el.checked?[...new Set(S.fams.concat(f))]:S.fams.filter(x=>x!==f);if(!S.fams.length){S.fams=[f];el.checked=true;toast("Mantenha ao menos uma família");}S.plan=buildPlan();save();});
   $("#exportBtn").onclick=()=>{ const data=JSON.stringify({app:"ANJO EYWA",formato:1,exportadoEm:new Date().toISOString(),dados:S},null,2);
     try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download="anjo-meus-dados-"+TODAY+".json"; document.body.appendChild(a); a.click(); a.remove(); toast("Arquivo com seus dados salvo"); }catch(e){ const o=$("#exportOut"); o.hidden=false; o.textContent=data; } };
-  if(confirmDel){$("#delYes").onclick=()=>{try{localStorage.removeItem(KEY);}catch(e){} S=DEFAULT();S.plan=buildPlan();save();confirmDel=false;notif=null;renderNotif();onbStep=0;tab="hoje";render();};
+  if(confirmDel){$("#delYes").onclick=()=>{store.wipe(); S=DEFAULT();S.plan=buildPlan();save();confirmDel=false;notif=null;renderNotif();onbStep=0;tab="hoje";render();};
     $("#delNo").onclick=()=>{confirmDel=false;renderPerfil();};}
   else $("#delBtn").onclick=()=>{confirmDel=true;renderPerfil();};
 }
 
 /* ================= Editor do plano ================= */
-let pe=null;
+let pe=null, confirmPinOff=false;
 const pracOptions=sel=>Object.keys(SIZE).map(sz=>`<optgroup label="${SIZE[sz].n}">${P.filter(p=>p.size===sz&&allowed(p)).map(p=>`<option value="${p.id}" ${p.id===sel?"selected":""}>${esc(p.name)} · ${fmt(p.sec)}</option>`).join("")}</optgroup>`).join("");
 function planSet(key,patch){ // muda um momento do plano
   if(key.startsWith("r:")){ const r=S.reminders[+key.slice(2)]; if(r) Object.assign(r,patch.t?{t:patch.t}:{},patch.id?{id:patch.id}:{}); }
@@ -607,6 +615,62 @@ function drawPlanEdit(){
     <p class="note">Sugestões automáticas respeitam o limite de ${S.perDay} por dia (mude no Perfil). Momentos seus e convites ficam fora do limite.</p>
     <div class="foot"><button class="btn gold" data-peclose>Pronto</button><button class="btn ghost" data-pereset>Voltar ao plano sugerido</button></div></div>`;
   el.scrollTop=first?0:st;
+}
+
+/* ================= Bloqueio com PIN ================= */
+let pinFlow=null, lockView="pin", hiddenAt=0;
+function drawLock(msg){
+  let el=$("#phone .overlay.lockov");
+  if(!el){ el=document.createElement("div"); el.className="overlay immersive lockov"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","ANJO travado"); $("#phone").appendChild(el); }
+  const wait=store.waitSeconds();
+  if(lockView==="forgot"){
+    el.innerHTML=`<div class="scw" style="text-align:center;align-items:center;padding-top:40px">${anjoLogo(90)}<h1 style="font-size:23px">Esqueceu o PIN?</h1>
+      <p style="color:var(--muted);max-width:32ch">Por segurança, o PIN não é guardado em lugar nenhum. Sem ele, não há como abrir os dados deste aparelho.</p>
+      <p style="color:var(--muted);max-width:32ch">Você pode apagar tudo e começar de novo. Isso não tem volta.</p>
+      <div class="foot"><button class="btn" style="background:var(--danger);color:#fff" data-wipeall>Apagar tudo e começar de novo</button><button class="btn ghost" data-forgotback>Voltar e tentar o PIN</button></div></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="scw" style="text-align:center;align-items:center;padding-top:40px">${anjoLogo(110)}
+    <h1 style="font-size:24px">Seu ANJO está protegido</h1><p style="color:var(--muted)">Digite seu PIN para abrir.</p>
+    <form id="pinForm" class="stack" style="width:100%;max-width:260px">
+      <input type="password" id="pinIn" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" aria-label="PIN" placeholder="••••" style="text-align:center;font-size:24px;letter-spacing:.4em;background:rgba(244,228,196,.1);color:var(--ink);border-color:var(--line)" ${wait?"disabled":""}>
+      <button class="btn gold" type="submit" ${wait?"disabled":""}>Entrar</button>
+      <p id="pinMsg" role="alert" style="min-height:20px;color:#F4A68F;font-size:14px">${esc(msg||(wait?`Muitas tentativas. Tente de novo em ${wait} segundos.`:""))}</p>
+    </form>
+    <div class="foot"><button class="link" style="color:#E9C27F" data-forgot>Esqueci meu PIN</button></div></div>`;
+  const f=$("#pinForm"), i=$("#pinIn");
+  f.addEventListener("submit",async e=>{ e.preventDefault(); const pin=i.value.trim(); if(pin.length<4) return;
+    const btn=f.querySelector("button"); btn.disabled=true; btn.textContent="Abrindo…";
+    const ok=await store.unlock(pin);
+    if(ok){ el.remove(); await loadAndStart(); } else drawLock(store.waitSeconds()?`Muitas tentativas. Tente de novo em ${store.waitSeconds()} segundos.`:"PIN incorreto. Tente de novo."); });
+  if(wait) setTimeout(()=>{ if($("#phone .overlay.lockov")&&lockView==="pin") drawLock(); },wait*1000+200);
+  else setTimeout(()=>{ const x=$("#pinIn"); if(x) x.focus(); },100);
+}
+async function lockApp(){
+  if(!store.hasPin()) return;
+  await saveNow(); clearInterval(tick); clearInterval(focusTimer); Voice.stop(); Music.stop(true);
+  pause=null; drawPause(); notif=null; renderNotif(); ck=null; drawCk(); pe=null; drawPlanEdit(); if(scan){ scan=null; drawScan(); } pinFlow=null; drawPinFlow();
+  store.lock(); $("#scr").innerHTML=""; lockView="pin"; drawLock();
+}
+function drawPinFlow(msg){
+  let el=$("#phone .overlay.pinset"); if(!pinFlow){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement("div"); el.className="overlay light pinset"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","PIN do ANJO"); $("#phone").appendChild(el); }
+  const second=pinFlow.step===2;
+  el.innerHTML=`<div class="scw"><div class="ov-top"><span class="eyebrow">Privacidade</span><button class="iconbtn" data-pinclose aria-label="Fechar">${icon("x")}</button></div>
+    <div><h1 style="font-size:23px">${second?"Repita o PIN":"Crie um PIN"}</h1><p class="meta" style="margin-top:6px">${second?"Para confirmar, digite o mesmo PIN.":"De 4 a 6 números. Com ele, seus dados ficam criptografados neste aparelho e o app pede o PIN ao abrir."}</p></div>
+    <form id="pinSetForm" class="stack">
+      <input type="password" id="pinSetIn" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password" aria-label="PIN" placeholder="••••" style="text-align:center;font-size:24px;letter-spacing:.4em">
+      <p role="alert" style="min-height:20px;color:var(--danger);font-size:14px">${esc(msg||"")}</p>
+      <button class="btn gold" type="submit">${second?"Ativar PIN":"Continuar"}</button>
+    </form>
+    <p class="note">Guarde bem o PIN. Se esquecer, não há como recuperar os dados: só apagar e começar de novo.</p></div>`;
+  $("#pinSetForm").addEventListener("submit",async e=>{ e.preventDefault(); const v=$("#pinSetIn").value.trim();
+    if(!/^\d{4,6}$/.test(v)){ drawPinFlow("Use de 4 a 6 números."); return; }
+    if(!second){ pinFlow={step:2,first:v}; drawPinFlow(); return; }
+    if(v!==pinFlow.first){ pinFlow={step:1}; drawPinFlow("Os PINs não são iguais. Comece de novo."); return; }
+    clearTimeout(saveT); const ok=await store.setPin(v,S); pinFlow=null; drawPinFlow(); renderPerfil();
+    toast(ok?"PIN ativado. Seus dados estão criptografados.":"Não deu para ativar o PIN neste navegador."); });
+  setTimeout(()=>{ const x=$("#pinSetIn"); if(x) x.focus(); },100);
 }
 
 /* ================= Boas-vindas ================= */
@@ -803,6 +867,7 @@ function endFocus(){
 // relógio do app: confere o plano a cada 30 segundos
 let lastMin="";
 function clockTick(){
+  if(!ready||store.isLocked()) return;
   const changed=rollover(); if(changed){ S.plan=buildPlan(); save(); }
   nowT=nowStr(); const now=toMin(nowT);
   if(S.refusedAt&&Date.now()-S.refusedAt>3*36e5){ S.refusals=0; S.refusedAt=null; save(); }
@@ -840,6 +905,15 @@ document.addEventListener("click",e=>{
   const rg=e.target.closest("[data-reg]"); if(rg&&scan&&scan.i===5){ const k=rg.dataset.reg, v=scan.a.pain[k]||0; scan.a.pain[k]=v>=9?0:v+3; drawScan(); return; }
   const t=e.target.closest("button"); if(!t) return; const d=t.dataset;
   if(d.scan!==undefined){ openScan(); return; }
+  if(d.pinset!==undefined){ pinFlow={step:1}; drawPinFlow(); return; }
+  if(d.pinclose!==undefined){ pinFlow=null; drawPinFlow(); return; }
+  if(d.lock!==undefined){ lockApp(); return; }
+  if(d.pinoff!==undefined){ confirmPinOff=true; renderPerfil(); return; }
+  if(d.pinoffno!==undefined){ confirmPinOff=false; renderPerfil(); return; }
+  if(d.pinoffyes!==undefined){ confirmPinOff=false; clearTimeout(saveT); store.removePin(S).then(()=>{ renderPerfil(); toast("PIN removido"); }); return; }
+  if(d.forgot!==undefined){ lockView="forgot"; drawLock(); return; }
+  if(d.forgotback!==undefined){ lockView="pin"; drawLock(); return; }
+  if(d.wipeall!==undefined){ store.wipe(); lockView="pin"; const lk=$("#phone .overlay.lockov"); if(lk) lk.remove(); loadAndStart(); toast("Dados apagados. Vamos começar de novo."); return; }
   if(d.agua){ const f=readFoodForm(); f.agua=Math.max(0,Math.min(20,(f.agua||0)+(+d.agua))); save(); renderNutri(); return; }
   if(d.tela){ const f=readFoodForm(); f.tela=d.tela; save(); renderNutri(); return; }
   if(d.nutsave!==undefined){ const f=readFoodForm(); if(!MEALS.some(([k])=>(f.meals[k]||"").trim())){ toast("Escreva pelo menos uma refeição"); return; }
@@ -930,15 +1004,29 @@ function handleAction(a){
   if(!a||!S.onboarded) return;
   if(a==="ck") openCk(); else if(a==="rx") openScan(); else if(byId(a)) startPause(a);
 }
-applyTheme();
-S.plan=buildPlan(); save();
-if(!S.onboarded) onbStep=0;
-render();
-lastMin=nowT; setInterval(clockTick,30000);
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") clockTick(); });
-if(S.focusStart&&tab==="hoje") runFocus();
-// abrir uma prática ou o check-in a partir da notificação
-try{ const a=new URLSearchParams(location.search).get("a"); if(a){ history.replaceState(null,"",location.pathname); setTimeout(()=>handleAction(a),300); } }catch(e){}
+/* ================= Início do app ================= */
+let started=false;
+async function loadAndStart(){
+  let d=null;
+  try{ d=await store.load(); }catch(e){ lockView="pin"; drawLock(); return; }
+  S=Object.assign(DEFAULT(),d||{}); ready=true; onbStep=-1; tab="hoje";
+  rollover(); applyTheme(); S.plan=buildPlan(); save();
+  if(!S.onboarded) onbStep=0;
+  render();
+  if(S.focusStart) runFocus();
+  if(!started){
+    started=true; lastMin=nowT; setInterval(clockTick,30000);
+    // abrir uma prática ou o check-in a partir da notificação
+    try{ const a=new URLSearchParams(location.search).get("a"); if(a){ history.replaceState(null,"",location.pathname); setTimeout(()=>handleAction(a),300); } }catch(e){}
+  }
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){ hiddenAt=Date.now(); saveNow(); return; }
+  if(store.hasPin()&&!store.isLocked()&&hiddenAt&&Date.now()-hiddenAt>5*60000){ lockApp(); return; }
+  clockTick();
+});
+window.addEventListener("pagehide",()=>{ saveNow(); });
+if(store.isLocked()) drawLock(); else loadAndStart();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){
   navigator.serviceWorker.register("sw.js").catch(()=>{});
   navigator.serviceWorker.addEventListener("message",e=>{ if(e.data&&e.data.a) handleAction(e.data.a); });

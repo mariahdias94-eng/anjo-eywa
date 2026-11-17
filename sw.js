@@ -1,10 +1,19 @@
 // Service worker do ANJO: guarda o app para funcionar sem internet e abre o app pelos lembretes.
 // Ao publicar uma nova versão, aumente o número abaixo para os aparelhos baixarem a atualização.
-const CACHE = "anjo-v4";
+const CACHE = "anjo-v5";
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./css/app.css",
+  "./js/app.js",
+  "./js/core/util.js",
+  "./js/core/midia.js",
+  "./js/core/armazenamento.js",
+  "./js/data/conteudo.js",
+  "./js/ui/arte.js",
+  "./js/saude/raiox.js",
+  "./js/saude/nutricao.js",
   "./icons/icon.svg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -42,23 +51,24 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Arquivos do app e fontes: responde com a cópia guardada e atualiza em segundo plano.
+  // Arquivos do app: internet primeiro (sempre a versão mais nova); sem internet, a cópia guardada.
+  // Fontes do Google: a cópia guardada primeiro (não mudam).
   const sameOrigin = url.origin === self.location.origin;
   const isFont = /(^|\.)fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
-  if (sameOrigin || isFont) {
+  if (sameOrigin) {
     e.respondWith(
-      caches.match(req).then((hit) => {
-        const net = fetch(req)
-          .then((res) => {
-            if (res.ok || res.type === "opaque") {
-              const copy = res.clone();
-              caches.open(CACHE).then((c) => c.put(req, copy));
-            }
-            return res;
-          })
-          .catch(() => hit);
-        return hit || net;
-      })
+      fetch(req)
+        .then((res) => {
+          if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+          return res;
+        })
+        .catch(() => caches.match(req, { ignoreSearch: true }))
+    );
+  } else if (isFont) {
+    e.respondWith(
+      caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+        const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); return res;
+      }))
     );
   }
 });
