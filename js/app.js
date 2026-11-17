@@ -30,7 +30,7 @@ const DEFAULT=()=>({
   fams:Object.keys(FAM),steps:false,narr:true,music:true,notify:false,theme:"auto",ckTime:"08:00",refusals:0,shownToday:0,fired:[],focusStart:null,focusLen:50,
   stats:{},goals:[],safety:{},healthNote:"",planEdits:{},
   profile:{texto:"",acordar:"07:00",inicio:"09:00",fim:"18:00",estudo:"noite",dormir:"23:00",lugar:"Casa"},
-  days:{}, today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null
+  days:{}, network:[], today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null
 });
 let S;
 S=DEFAULT();
@@ -298,38 +298,82 @@ function greeting(){
   if(t.humor>=4) return `${part}${S.name?", "+esc(S.name):""}. Que bom que está bem. Vamos manter esse ritmo.`;
   return `${part}${S.name?", "+esc(S.name):""}. Seu dia está planejado. Apareço só na hora certa.`;
 }
+// Tela inicial em seis blocos: meu estado, meu plano de hoje, conversar, minha evolução, aprender, rede de cuidado.
+let fullPlan=false, addContact=false;
+const EMERG=[["192","SAMU","Urgência e emergência médica"],["193","Bombeiros","Acidentes, resgate e incêndio"],["188","CVV","Apoio emocional, 24 horas, ligação gratuita"],["136","Disque Saúde","Informações sobre saúde e o SUS"]];
+const blkH=(t,more)=>`<div class="blk-h"><h2>${t}</h2>${more||""}</div>`;
+function dicaDoDia(){ const pool=P.filter(p=>allowed(p)&&p.why&&p.size!=="completa"); return pool[daysBetween("2026-01-01",TODAY)%pool.length]; }
 function renderHoje(){
   const now=toMin(nowT);
   const nx=S.plan.find(m=>toMin(m.t)>now&&!m.invite)||S.plan.find(m=>!m.invite);
   const np=byId(nx.id); const doneN=S.todayDone.length, goal=S.perDay, c=2*Math.PI*30, k=Math.min(1,doneN/goal);
-  const focusing=!!S.focusStart;
-  const recs=S.today?recommend(S.today):[];
+  const focusing=!!S.focusStart, recs=S.today?recommend(S.today):[];
+  const upcoming=S.plan.filter(m=>toMin(m.t)>now&&m!==nx).slice(0,3);
+  const wk=weekData(), wkTot=wk.reduce((a,b)=>a+(b||0),0);
+  const mon=addDays(TODAY,-TODAY_IDX), hs=WD.map((_,i)=>(S.days[addDays(mon,i)]||{}).h).filter(v=>v!=null);
+  const last=S.scans[S.scans.length-1], gap=last&&last.date?daysBetween(last.date,TODAY):0;
+  const dica=dicaDoDia(), part=greetPart();
   $("#scr").innerHTML=`
-  <div class="appbar">${brand(36)}<button class="pill" data-tab="arvore">${S.seeds} ${S.seeds===1?"semente":"sementes"}</button></div>
-  <div class="stack">
-    <section class="hero" aria-label="Seu dia com o ANJO">
-      <div class="top">${anjo(58)}<div class="bubble">${greeting()}</div></div>
-      <div class="next">
-        <div class="ringsm"><svg viewBox="0 0 74 74"><circle cx="37" cy="37" r="30" fill="none" stroke="rgba(244,228,196,.18)" stroke-width="7"/><circle cx="37" cy="37" r="30" fill="none" stroke="#D6A558" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-k)}"/></svg><b>${doneN}/${goal}<small>pausas</small></b></div>
-        <div><div class="eyebrow">Próxima pausa · ${toMin(nx.t)>now?nx.t:"amanhã, "+nx.t}</div><h2>${esc(np.name)}</h2><div class="meta">${esc(nx.lbl)} · ${fmt(np.sec)}</div>
-          <div class="row" style="margin-top:10px"><button class="btn gold small" data-start="${np.id}">Fazer agora</button><button class="btn ghost small" data-tab="explorar">Trocar</button></div></div>
-      </div>
-    </section>
-    ${trailCard()}
-    ${S.today?`<div class="card"><div class="between"><div><div class="eyebrow">Check-in de hoje</div><b style="font-family:var(--f-display)">${CK[0].o[S.today.humor-1][1]} · energia ${({baixa:"baixa",media:"normal",alta:"alta"})[S.today.energia]}</b></div><button class="link" data-ck>Refazer</button></div>
-      <div class="meta" style="margin-top:6px">Práticas indicadas para você hoje</div><div class="recs">${recs.slice(0,3).map(r=>pracRow(r.p,r.w)).join("")}</div></div>`
-    :`<button class="card ck-card nowbtn" data-ck style="background:var(--card)">${faceSVG(4)}<span><b>Check-in de hoje</b><span class="meta">Conte como está. O ANJO indica as práticas certas. +1 semente</span></span><span class="arrow">›</span></button>`}
-    <button class="nowbtn" data-now>${anjoLogo(40)}<span><b>Preciso de uma pausa agora</b><span class="meta">O ANJO escolhe pelo seu momento</span></span><span class="arrow">›</span></button>
-    <div class="card">
-      <div class="between"><div><div class="eyebrow">Sessão de estudo</div><div class="meta">${focusing?"Em foco. O ANJO sugere a pausa ao fim.":"Hoje: "+dayRec().f+" min de foco"}</div></div>
-      ${focusing?`<button class="btn ghost small" data-focus>Encerrar</button>`:`<div class="row"><button class="chip" data-flen="25" aria-pressed="${S.focusLen===25}">25</button><button class="chip" data-flen="50" aria-pressed="${S.focusLen===50}">50 min</button></div>`}</div>
-      ${focusing?`<div class="focus-bar"><i id="fbar"></i></div><div class="meta" style="margin-top:6px" id="fleft"></div>`:`<button class="btn green small block" style="margin-top:10px" data-focus>Começar a estudar</button>`}
+  <div class="appbar">${brand(36)}<button class="pill" data-go="arvore">${S.seeds} ${S.seeds===1?"semente":"sementes"}</button></div>
+  <div class="hello2">${anjo(46)}<p><b>${part}${S.name?", "+esc(S.name):""}.</b> ${S.today?(S.today.tensao==="alta"?"Hoje vou priorizar respiração e calma.":S.today.energia==="baixa"?"Energia baixa: pausas curtas de movimento vão ajudar.":"Seu dia está planejado. Apareço só na hora certa."):"Como você está agora?"}</p></div>
+
+  ${blkH("Meu estado",S.today?`<button class="link" data-ck>Refazer</button>`:"")}
+  ${S.today?`<div class="card"><b style="font-family:var(--f-display)">${CK[0].o[S.today.humor-1][1]} · energia ${({baixa:"baixa",media:"normal",alta:"alta"})[S.today.energia]} · tensão ${({baixa:"pouca",media:"alguma",alta:"muita"})[S.today.tensao]}</b>
+      <div class="meta" style="margin-top:4px">Práticas indicadas para hoje</div><div class="recs">${recs.slice(0,2).map(r=>pracRow(r.p,r.w)).join("")}</div></div>`
+   :`<div class="card"><div class="faces" role="group" aria-label="Como você está">${CK[0].o.map(([n,l])=>`<button class="face" data-ckq="${n}">${faceSVG(n)}${l}</button>`).join("")}</div>
+      <p class="meta" style="margin-top:8px">Toque em como você está. Mais 4 perguntas rápidas e o ANJO indica as práticas do dia. +1 semente</p></div>`}
+
+  ${blkH("Meu plano de hoje",`<button class="link" data-planedit>Ajustar</button>`)}
+  <section class="hero" aria-label="Próxima pausa">
+    <div class="next" style="margin-top:0">
+      <div class="ringsm"><svg viewBox="0 0 74 74"><circle cx="37" cy="37" r="30" fill="none" stroke="rgba(244,228,196,.18)" stroke-width="7"/><circle cx="37" cy="37" r="30" fill="none" stroke="#D6A558" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-k)}"/></svg><b>${doneN}/${goal}<small>pausas</small></b></div>
+      <div><div class="eyebrow">Próxima pausa · ${toMin(nx.t)>now?nx.t:"amanhã, "+nx.t}</div><h2>${esc(np.name)}</h2><div class="meta">${esc(nx.lbl)} · ${fmt(np.sec)}</div>
+        <div class="row" style="margin-top:10px"><button class="btn gold small" data-start="${np.id}">Fazer agora</button><button class="btn ghost small" data-go="explorar">Trocar</button></div></div>
     </div>
-    <div class="card">
-      <div class="between" style="margin-bottom:6px"><div class="eyebrow">Seu plano de hoje</div><button class="link" data-planedit>Ajustar</button></div>
-      <ul class="tl">${S.plan.map(m=>{const p=byId(m.id);const done=toMin(m.t)<=now;return `<li class="${done?"done":""} ${m.invite?"inv":""}"><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}${m.invite?" · convite":""}</b><span>${esc(m.lbl)} · ${fmt(p.sec)}</span></div></li>`;}).join("")}</ul>
-      <div class="meta" style="margin-top:6px">Montado a partir do seu perfil. Linhas tracejadas são convites, sem cobrança.</div>
-    </div>
+  </section>
+  <div class="card" style="margin-top:10px">
+    <ul class="tl">${(fullPlan?S.plan:upcoming).map(m=>{const p=byId(m.id);const done=toMin(m.t)<=now;return `<li class="${done?"done":""} ${m.invite?"inv":""}"><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}${m.invite?" · convite":""}</b><span>${esc(m.lbl)} · ${fmt(p.sec)}</span></div></li>`;}).join("")||`<li><span class="meta">Sem mais pausas hoje. Descanse bem.</span></li>`}</ul>
+    <button class="link" style="margin-top:6px" data-fullplan>${fullPlan?"Mostrar só as próximas":"Ver o dia completo"}</button>
+  </div>
+  ${S.trail?trailCard():""}
+  <div class="grid2">
+    <button class="nowbtn" data-now>${anjoLogo(34)}<span><b>Pausa agora</b><span class="meta">O ANJO escolhe</span></span></button>
+    <button class="nowbtn" data-focus>${focusing?`<span class="focusdot"></span><span><b>Em foco</b><span class="meta" id="fleft">estudando…</span></span>`:`<span class="studyic" aria-hidden="true">⏱</span><span><b>Estudar ${S.focusLen} min</b><span class="meta">Hoje: ${dayRec().f} min</span></span>`}</button>
+  </div>
+  ${focusing?`<div class="focus-bar" style="margin-top:8px"><i id="fbar"></i></div>`:`<div class="row" style="margin-top:8px;justify-content:flex-end"><span class="meta">Sessão de estudo:</span><button class="chip" data-flen="25" aria-pressed="${S.focusLen===25}">25 min</button><button class="chip" data-flen="50" aria-pressed="${S.focusLen===50}">50 min</button></div>`}
+
+  ${blkH("Conversar com o ANJO")}
+  <div class="card">
+    <button class="askbox" data-go="conversa">${anjoLogo(28)}<span>Como posso te ajudar agora?</span></button>
+    <div class="chips" style="margin-top:10px">${["Estou ansioso","Preciso de uma pausa","Dormi mal","Resumo da semana"].map(x=>`<button class="chip" data-askq="${x}">${x}</button>`).join("")}</div>
+    <p class="note" style="margin-top:8px">Modo básico: respostas automáticas por regras, sem inteligência artificial.</p>
+  </div>
+
+  ${blkH("Minha evolução",`<button class="link" data-go="progresso">Ver tudo</button>`)}
+  <div class="stats">
+    <div class="card stat"><b>${wkTot}</b><span>pausas nesta semana</span></div>
+    <div class="card stat"><b>${STAGES[stageIdx(S.seeds)][0]}</b><span>sua árvore</span></div>
+    <div class="card stat"><b>${hs.length?(hs.reduce((a,b)=>a+b,0)/hs.length).toFixed(1).replace(".",","):"—"}</b><span>${hs.length?"humor médio (1 a 5)":"faça check-ins"}</span></div>
+  </div>
+  ${!S.scans.length||gap>=14||!S.trail?`<div style="margin-top:10px">${trailCard()}</div>`:""}
+
+  ${blkH("Aprender")}
+  ${dica?`<div class="card"><div class="eyebrow">Dica do dia · ${esc(FAM[dica.fam].n)}</div><h3 style="font-size:16px;margin:4px 0">${esc(dica.name)}</h3><p style="font-size:14px">${esc(dica.why)}</p>
+    <button class="btn ghost small" style="margin-top:10px" data-start="${dica.id}">Experimentar · ${fmt(dica.sec)}</button></div>`:""}
+  <button class="nowbtn" style="margin-top:10px" data-go="nutri"><span class="studyic" aria-hidden="true">🍎</span><span><b>Como está sua alimentação?</b><span class="meta">Conte o que come num dia e receba um parecer simples</span></span><span class="arrow">›</span></button>
+
+  ${blkH("Minha rede de cuidado")}
+  <div class="card">
+    <div class="eyebrow" style="margin-bottom:6px">Emergência e apoio</div>
+    ${EMERG.map(([n,l,d])=>`<a class="netrow" href="tel:${n}"><b class="num">${n}</b><span><b>${l}</b><small>${d}</small></span><span class="arrow">Ligar</span></a>`).join("")}
+    <div class="eyebrow" style="margin:14px 0 6px">Meus contatos de cuidado</div>
+    ${(S.network||[]).map((x,i)=>`<div class="netrow"><span class="avatar" style="width:36px;height:36px;font-size:15px">${esc((x.nome||"?")[0])}</span><span><b>${esc(x.nome)}</b><small>${esc(x.tipo)}${x.fone?" · "+esc(x.fone):""}</small></span><span class="row" style="flex-wrap:nowrap;gap:6px">${x.fone?`<a class="btn ghost small" href="tel:${esc(x.fone.replace(/[^\d+]/g,""))}">Ligar</a>`:""}<button class="iconbtn" data-netdel="${i}" aria-label="Remover ${esc(x.nome)}">${icon("x")}</button></span></div>`).join("")||`<p class="meta">Guarde aqui seu médico, sua UBS, um familiar ou quem cuida de você.</p>`}
+    ${addContact?`<div class="stack" style="margin-top:10px"><input type="text" id="netNome" placeholder="Nome, ex.: Dra. Ana ou UBS Centro" aria-label="Nome">
+      <select id="netTipo" aria-label="Tipo">${["Médico ou médica","Unidade de saúde (UBS)","Psicólogo ou psicóloga","Fisioterapeuta","Nutricionista","Familiar","Amigo ou amiga","Outro"].map(t=>`<option>${t}</option>`).join("")}</select>
+      <input type="text" id="netFone" inputmode="tel" placeholder="Telefone (opcional)" aria-label="Telefone">
+      <div class="row"><button class="btn green small" data-netsave>Salvar contato</button><button class="btn ghost small" data-netcancel>Cancelar</button></div></div>`
+     :`<button class="btn ghost small" style="margin-top:10px" data-netadd>Adicionar contato</button>`}
+    <p class="note" style="margin-top:8px">Os contatos ficam só neste aparelho. Ligar não envia nenhum dado seu.</p>
   </div>`;
   if(focusing) runFocus();
 }
@@ -431,7 +475,7 @@ function who5Form(){ return `<p class="meta" style="margin-top:10px">Nas última
 function impactoHTML(){
   const mudas=Math.floor(S.seeds/10);
   return `<div class="stack">
-    <div class="hero"><div class="eyebrow">Seu impacto na Eduzz · fase 2</div><h2 style="font-size:22px;margin:6px 0">Você já gerou ${mudas} ${mudas===1?"muda":"mudas"} com os seus estudos</h2><p class="meta">Regra provisória: 10 sementes = 1 muda nativa no Regenera Elysium.</p></div>
+    <div class="hero"><div class="eyebrow">Prévia · integração com a Eduzz ainda não existe</div><h2 style="font-size:22px;margin:6px 0">Você já gerou ${mudas} ${mudas===1?"muda":"mudas"} com os seus estudos</h2><p class="meta">Regra provisória: 10 sementes = 1 muda nativa no Regenera Elysium.</p></div>
     <div class="card"><div class="eyebrow" style="margin-bottom:8px">Cursos que também regeneram</div><p class="meta">Quando a integração com a Eduzz chegar, seus cursos e as mudas geradas com eles aparecem aqui.</p></div>
     <div class="card"><div class="eyebrow" style="margin-bottom:6px">Minhas mudas</div><p class="meta">Quando a sua primeira muda for plantada, ela aparece aqui com foto, espécie e localização.</p></div>
     <div class="card"><div class="between"><div><div class="eyebrow">Plantar mais uma árvore</div><div class="meta">Contribuição opcional, com transparência</div></div><button class="btn ghost small" disabled>Em breve</button></div></div>
@@ -444,6 +488,7 @@ function anjoSays(t){
   const l=t.toLowerCase();
   if(/(ansios|nervos|aflit|prova)/.test(l)) return {r:"Obrigado por contar. Antes da prova, a respiração 4–6 ajuda a acalmar. Topa um minuto comigo?",p:"r46"};
   if(/(travad|bloque|estress|tens)/.test(l)) return {r:"Vamos soltar um pouco. Três respirações, agora.",p:"resp3"};
+  if(/(dormi mal|n[aã]o dormi|ins[oô]nia|sono ruim|acordei cansad|durmo mal)/.test(l)) return {r:"Noites ruins pesam no dia. Hoje, pausas curtas e menos café à tarde ajudam. À noite, o ritual de sono prepara o corpo para descansar. Se isso acontece com frequência, vale conversar com um profissional.",p:"sono"};
   if(/(cansad|sono|exaust)/.test(l)) return {r:"Seus olhos devem estar pedindo descanso. 20 segundos olhando longe?",p:"distante"};
   if(/(costas|parad|sentad|pesco)/.test(l)) return {r:"Pescoço e ombros, um minuto e meio. Se houver dor forte, vá com calma.",p:"pescoco"};
   if(/(comida|como no dia|nutri|aliment|dieta)/.test(l)) return {r:"Me conte na aba Nutrição o que você come num dia normal. Eu mostro o que já está bom e as mudanças que mais ajudam, sem dieta.",p:null,go:"nutri"};
@@ -456,7 +501,8 @@ function anjoSays(t){
 }
 function renderConversa(){
   if(!S.chat.length) S.chat=[{a:1,t:`Oi${S.name?", "+S.name:""}. Como você está agora?`}];
-  $("#scr").innerHTML=`<div class="appbar">${brand(32)}<span class="badge">conversa</span></div>
+  $("#scr").innerHTML=`<div class="appbar">${brand(32)}<span class="badge">modo básico</span></div>
+  <div class="aibox"><b>Como o ANJO responde hoje</b><p>Por regras simples, sem inteligência artificial e sem guardar memória das conversas fora deste aparelho. A IA com memória chega na versão com servidor, e você vai poder escolher se quer usar.</p><p>O ANJO não faz diagnóstico. Em emergência, ligue 192. Em sofrimento intenso, 188.</p></div>
   <div class="chat">${S.chat.map(m=>`<div class="msg ${m.a?"a":"u"}">${esc(m.t)}${m.p?`<div style="margin-top:8px"><button class="btn gold small" data-start="${m.p}">${esc(byId(m.p).name)} · ${fmt(byId(m.p).sec)}</button></div>`:""}${m.go?`<div style="margin-top:8px"><button class="btn ghost small" data-go="${m.go}">Abrir</button></div>`:""}</div>`).join("")}</div>
   <div class="chips" style="margin-top:6px">${["Estou ansioso com a prova","Estou travado, me ajuda","Resumo da semana","Quero contar minha rotina"].map(x=>`<button class="chip" data-q="${x}">${x}</button>`).join("")}</div>`;
   $("#composeSlot").innerHTML=`<form class="compose" id="cform"><input type="text" id="cin" placeholder="Fale com o ANJO" autocomplete="off" aria-label="Mensagem para o ANJO"><button class="btn gold small" type="submit">Enviar</button></form>`;
@@ -905,6 +951,13 @@ document.addEventListener("click",e=>{
   const rg=e.target.closest("[data-reg]"); if(rg&&scan&&scan.i===5){ const k=rg.dataset.reg, v=scan.a.pain[k]||0; scan.a.pain[k]=v>=9?0:v+3; drawScan(); return; }
   const t=e.target.closest("button"); if(!t) return; const d=t.dataset;
   if(d.scan!==undefined){ openScan(); return; }
+  if(d.ckq){ openCk(); ck.a.humor=+d.ckq; ck.i=1; drawCk(); return; }
+  if(d.fullplan!==undefined){ fullPlan=!fullPlan; renderHoje(); return; }
+  if(d.askq){ tab="conversa"; render(); send(d.askq); return; }
+  if(d.netadd!==undefined){ addContact=true; renderHoje(); setTimeout(()=>{const x=$("#netNome"); if(x) x.focus();},50); return; }
+  if(d.netcancel!==undefined){ addContact=false; renderHoje(); return; }
+  if(d.netsave!==undefined){ const nome=$("#netNome").value.trim(); if(!nome){ toast("Escreva o nome do contato"); return; } S.network=(S.network||[]).concat([{nome,tipo:$("#netTipo").value,fone:$("#netFone").value.trim()}]); addContact=false; save(); renderHoje(); toast("Contato salvo"); return; }
+  if(d.netdel!=null){ S.network.splice(+d.netdel,1); save(); renderHoje(); return; }
   if(d.pinset!==undefined){ pinFlow={step:1}; drawPinFlow(); return; }
   if(d.pinclose!==undefined){ pinFlow=null; drawPinFlow(); return; }
   if(d.lock!==undefined){ lockApp(); return; }
@@ -947,7 +1000,7 @@ document.addEventListener("click",e=>{
   if(d.trailstart!==undefined){ startTrail(); return; }
   if(d.trailback!==undefined){ scan.i=9; drawScan(); return; }
   if(d.tab){ if(d.tab!=="perfil"&&tab==="perfil") readProfile(); if(tab==="nutri"&&nutEdit) readFoodForm(), save(); tab=d.tab; confirmDel=false; render(); $("#scr").scrollTop=0; return; }
-  if(d.go){ if(d.go==="progresso"||d.go==="raiox"){tab="arvore";sub=d.go;} else tab=d.go; render(); $("#scr").scrollTop=0; return; }
+  if(d.go){ if(d.go==="progresso"||d.go==="raiox"||d.go==="arvore"){tab="arvore";sub=d.go;} else tab=d.go; render(); $("#scr").scrollTop=0; return; }
   if(d.start){ startPause(d.start,d.first!==undefined); return; }
   if(d.begin!==undefined){ beginRun(); return; }
   if(d.now!==undefined){ const t0=S.today; const m={n:"Pedido agora",t:nowT,size:t0&&t0.energia==="baixa"?"micro":"curta",fav:t0&&t0.tensao==="alta"?"resp":"corpo"};
