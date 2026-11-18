@@ -1,6 +1,6 @@
 // Service worker do ANJO: guarda o app para funcionar sem internet e abre o app pelos lembretes.
 // Ao publicar uma nova versão, aumente o número abaixo para os aparelhos baixarem a atualização.
-const CACHE = "anjo-v5";
+const CACHE = "anjo-v6";
 const SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,8 @@ const SHELL = [
   "./js/ui/arte.js",
   "./js/saude/raiox.js",
   "./js/saude/nutricao.js",
+  "./js/saude/mapa.js",
+  "./js/saude/percurso.js",
   "./icons/icon.svg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

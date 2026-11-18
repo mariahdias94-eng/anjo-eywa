@@ -5,6 +5,8 @@ import {GRAD,angelFigure,anjoLogo,fig,sun,tree,glow,illo,treeSVG,faceSVG,posture
 import {Voice,Music,setMediaSettings} from "./core/midia.js";
 import {scoreScan,levers,flags,avgDims,deltas} from "./saude/raiox.js";
 import {analyzeFood} from "./saude/nutricao.js";
+import {MAPA,MAPA_NOTAS,URGENCIA,STATUS,mapStatus,nextMapQuestion,proAlerts} from "./saude/mapa.js";
+import {OBJETIVOS,AREAS,FASES,AJUDOU,ATRAPALHOU,dayOf,faseOf,adherence,weekCount} from "./saude/percurso.js";
 import {createStore} from "./core/armazenamento.js";
 setMediaSettings(()=>({narr:S.narr,music:S.music}));
 /* ================= utilidades ================= */
@@ -30,7 +32,7 @@ const DEFAULT=()=>({
   fams:Object.keys(FAM),steps:false,narr:true,music:true,notify:false,theme:"auto",ckTime:"08:00",refusals:0,shownToday:0,fired:[],focusStart:null,focusLen:50,
   stats:{},goals:[],safety:{},healthNote:"",planEdits:{},
   profile:{texto:"",acordar:"07:00",inicio:"09:00",fim:"18:00",estudo:"noite",dormir:"23:00",lugar:"Casa"},
-  days:{}, network:[], today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null
+  days:{}, network:[], today:null, who5:[], reminders:[], chat:[], plan:null, scans:[], trail:null, map:null, journey:null
 });
 let S;
 S=DEFAULT();
@@ -49,7 +51,7 @@ function rollover(){
   save(); return true;
 }
 
-let tab="hoje", sub="arvore", onbStep=-1, pause=null, notif=null, ck=null, toastT=null, nowT=nowStr(), filt="todas", q="", who5Ans=null, confirmDel=false;
+let tab="hoje", sub="percurso", onbStep=-1, pause=null, notif=null, ck=null, toastT=null, nowT=nowStr(), filt="todas", q="", who5Ans=null, confirmDel=false;
 function addLog(){} // o registro do motor existia só no painel de demonstração
 
 /* ================= o ANJO (logo e formas) ================= */
@@ -323,6 +325,8 @@ function renderHoje(){
    :`<div class="card"><div class="faces" role="group" aria-label="Como você está">${CK[0].o.map(([n,l])=>`<button class="face" data-ckq="${n}">${faceSVG(n)}${l}</button>`).join("")}</div>
       <p class="meta" style="margin-top:8px">Toque em como você está. Mais 4 perguntas rápidas e o ANJO indica as práticas do dia. +1 semente</p></div>`}
 
+  ${mapQuestionCard()}
+
   ${blkH("Meu plano de hoje",`<button class="link" data-planedit>Ajustar</button>`)}
   <section class="hero" aria-label="Próxima pausa">
     <div class="next" style="margin-top:0">
@@ -335,6 +339,7 @@ function renderHoje(){
     <ul class="tl">${(fullPlan?S.plan:upcoming).map(m=>{const p=byId(m.id);const done=toMin(m.t)<=now;return `<li class="${done?"done":""} ${m.invite?"inv":""}"><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}${m.invite?" · convite":""}</b><span>${esc(m.lbl)} · ${fmt(p.sec)}</span></div></li>`;}).join("")||`<li><span class="meta">Sem mais pausas hoje. Descanse bem.</span></li>`}</ul>
     <button class="link" style="margin-top:6px" data-fullplan>${fullPlan?"Mostrar só as próximas":"Ver o dia completo"}</button>
   </div>
+  ${journeyTodayCard()}
   ${S.trail?trailCard():""}
   <div class="grid2">
     <button class="nowbtn" data-now>${anjoLogo(34)}<span><b>Pausa agora</b><span class="meta">O ANJO escolhe</span></span></button>
@@ -355,6 +360,8 @@ function renderHoje(){
     <div class="card stat"><b>${STAGES[stageIdx(S.seeds)][0]}</b><span>sua árvore</span></div>
     <div class="card stat"><b>${hs.length?(hs.reduce((a,b)=>a+b,0)/hs.length).toFixed(1).replace(".",","):"—"}</b><span>${hs.length?"humor médio (1 a 5)":"faça check-ins"}</span></div>
   </div>
+  <div class="card" style="margin-top:10px"><div class="between"><div><div class="eyebrow">Mapa de saúde</div><b style="font-family:var(--f-display)">${knownCount()} de ${MAPA.length} áreas conhecidas</b></div><button class="link" data-go="mapa">Abrir</button></div>
+    ${J()&&!J().ended?`<p class="meta" style="margin-top:6px">Percurso: dia ${Math.min(90,jDay())} de 90 · ${J().goals.length?Math.round(J().goals.reduce((x,g)=>x+adherence(g,J().start,TODAY),0)/J().goals.length*100):0}% do combinado até agora</p>`:`<button class="btn gold small" style="margin-top:10px" data-jsetup>Criar meu percurso de 90 dias</button>`}</div>
   ${!S.scans.length||gap>=14||!S.trail?`<div style="margin-top:10px">${trailCard()}</div>`:""}
 
   ${blkH("Aprender")}
@@ -407,11 +414,9 @@ function renderExplorar(){
 
 /* ================= Árvore / Progresso / Impacto ================= */
 function renderArvore(){
-  const head=`<h1 style="font-size:24px;margin:6px 0 12px">Minha jornada</h1><div class="segtabs">${[["arvore","Árvore"],["raiox","Raio-X"],["progresso","Progresso"],["impacto","Impacto"]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${sub===k}">${l}</button>`).join("")}</div>`;
-  if(sub==="arvore") return $("#scr").innerHTML=head+arvoreHTML();
-  if(sub==="raiox") return $("#scr").innerHTML=head+raioxHTML();
-  if(sub==="progresso") return $("#scr").innerHTML=head+progressoHTML();
-  $("#scr").innerHTML=head+impactoHTML();
+  const head=`<h1 style="font-size:24px;margin:6px 0 12px">Minha jornada</h1><div class="segtabs">${[["percurso","Percurso"],["mapa","Mapa de saúde"],["progresso","Progresso"],["raiox","Raio-X"],["arvore","Árvore"]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${sub===k}">${l}</button>`).join("")}</div>`;
+  const body={percurso:percursoHTML,mapa:mapaHTML,progresso:progressoHTML,raiox:raioxHTML,arvore:()=>arvoreHTML()+`<div style="margin-top:16px">${impactoHTML()}</div>`}[sub]||percursoHTML;
+  $("#scr").innerHTML=head+body();
 }
 function arvoreHTML(){
   const si=stageIdx(S.seeds), nxt=STAGES[si+1], fi=formIdx(S.done);
@@ -634,6 +639,177 @@ function renderPerfil(){
   else $("#delBtn").onclick=()=>{confirmDel=true;renderPerfil();};
 }
 
+/* ================= Mapa de Saúde Integral ================= */
+let mqSel=[], msOpen=null;
+const mapA=()=>{ S.map=S.map||{}; const m=S.map; m.a=m.a||{}; m.consent=m.consent||{}; m.prio=m.prio||[]; m.skip=m.skip||{}; m.daily=m.daily||{d:"",n:0}; return m; };
+const dimOf=k=>MAPA.find(d=>d.k===k);
+const knownCount=()=>{ const m=mapA(); return MAPA.filter(d=>["parcial","conhecido","atencao"].includes(mapStatus(d,m))).length; };
+function mapAnswered(){ const m=mapA(); if(m.daily.d!==TODAY){ m.daily={d:TODAY,n:0}; } m.daily.n++; mqSel=[]; save(); }
+function checkUrgent(text){ if(URGENCIA.test(text||"")){ toast("Se isso está acontecendo agora, ligue 192 ou vá a uma UPA."); return true; } return false; }
+function optBtns(q,cur,attr){
+  if(q.text) return "";
+  return `<div class="chips">${q.o.map(v=>{ const on=q.multi?(cur||[]).includes(v):cur===v; return `<button class="chip" ${attr}="${esc(q.id)}|${esc(v)}" aria-pressed="${on}">${esc(v)}</button>`; }).join("")}</div>`;
+}
+function mapQuestionCard(){
+  const m=mapA(); if(m.daily.d===TODAY&&m.daily.n>=2) return "";
+  const nx=nextMapQuestion(m); if(!nx) return "";
+  const head=`<div class="eyebrow">Para o ANJO te conhecer · ${esc(nx.dim.n)}</div>`;
+  if(nx.consent) return `<div class="card mapq" style="margin-top:10px">${head}<h3>Posso guardar o que você contar sobre ${esc(nx.dim.n.toLowerCase())}?</h3>
+    <p class="meta">Fica só neste aparelho e serve para te ajudar a preparar consultas e montar o seu percurso. Você pode apagar quando quiser.</p>
+    <div class="row" style="margin-top:10px"><button class="btn green small" data-mqconsent="1">Sim, pode guardar</button><button class="btn ghost small" data-mqconsent="0">Prefiro não</button></div></div>`;
+  const q=nx.q;
+  return `<div class="card mapq" style="margin-top:10px">${head}<h3>${esc(q.q)}</h3>
+    ${q.text?`<textarea id="mqText" rows="2" style="min-height:64px" placeholder="${esc(q.ph||"")}"></textarea>`:q.multi?optBtns(q,mqSel,"data-mqm"):optBtns(q,null,"data-mqa")}
+    <div class="row" style="margin-top:10px">${q.text||q.multi?`<button class="btn green small" data-mqsave>Salvar</button>`:""}<button class="link" data-mqskip>Prefiro não responder</button><button class="link" data-mqlater>Depois</button></div></div>`;
+}
+function mapaHTML(){
+  const m=mapA(), n=knownCount(), alerts=proAlerts(m);
+  return `<div class="stack">
+    <div><h2 style="font-size:19px">Seu mapa de saúde</h2><p class="meta" style="margin-top:4px">${n} de ${MAPA.length} áreas conhecidas. Não é diagnóstico nem nota: mostra o que você contou e o que escolheu priorizar.</p></div>
+    <div class="mapgrid">${MAPA.map(d=>{ const st=mapStatus(d,m), [lbl,col]=STATUS[st], pr=m.prio.includes(d.k);
+      return `<button class="mtile st-${st}" data-msopen="${d.k}"><span class="mdot" style="background:${DIMS[d.d]?DIMS[d.d].c:"#B07A3A"}"></span><b>${esc(d.n)}</b><span class="mst" style="--c:${col}">${lbl}</span>${pr?`<span class="mprio" title="Prioridade">★</span>`:""}</button>`; }).join("")}</div>
+    ${alerts.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Vale procurar um profissional</div>${alerts.map(a=>`<div class="${a.urg?"crisis":"insight"}" style="${a.urg?"margin-bottom:8px":""}">${a.urg?"":"<i></i>"}<span>${esc(a.t)}</span></div>`).join("")}</div>`:""}
+    ${S.journey?`<button class="btn gold block" data-go="percurso">Ver meu percurso de 90 dias</button>`:`<button class="btn gold block" data-jsetup>Criar meu percurso de 90 dias</button>`}
+    <p class="note">Tudo fica só neste aparelho. Toque numa área para ver, mudar ou apagar o que você respondeu.</p></div>`;
+}
+function drawMapSheet(){
+  let el=$("#phone .overlay.msov"); if(!msOpen){ if(el) el.remove(); return; }
+  const first=!el; if(!el){ el=document.createElement("div"); el.className="overlay light msov"; el.setAttribute("role","dialog"); $("#phone").appendChild(el); }
+  const d=dimOf(msOpen), m=mapA(), st=mapStatus(d,m), [lbl]=STATUS[st], scroll=el.scrollTop;
+  el.setAttribute("aria-label",d.n);
+  el.innerHTML=`<div class="scw"><div class="ov-top"><span class="eyebrow">Mapa de saúde · ${lbl}</span><button class="iconbtn" data-msclose aria-label="Fechar">${icon("x")}</button></div>
+    <h1 style="font-size:23px">${esc(d.n)}</h1>
+    ${d.sens?`<div class="set"><label for="msCons">Guardar estas informações<small>${m.consent[d.k]===false?"Desligado: nada desta área é guardado":"Ficam só neste aparelho"}</small></label><input type="checkbox" class="switch" id="msCons" data-mscons="${d.k}" ${m.consent[d.k]===true?"checked":""}></div>`:""}
+    ${d.sens&&m.consent[d.k]!==true?`<p class="meta">Ligue a opção acima para responder.</p>`:d.qs.map(q=>`<div class="field"><label ${q.text?`for="mt-${q.id}"`:""}>${esc(q.q)}</label>
+      ${q.text?`<textarea id="mt-${q.id}" data-mstext="${q.id}" rows="2" style="min-height:64px" placeholder="${esc(q.ph||"")}">${esc(m.a[q.id]||"")}</textarea>`:optBtns(q,m.a[q.id],"data-msa")}</div>`).join("")}
+    ${MAPA_NOTAS[d.k]?`<div class="crisis" style="border-left-color:${d.k==="sintomas"||d.k==="emocional"?"var(--danger)":"var(--gold)"}">${esc(MAPA_NOTAS[d.k])}</div>`:""}
+    <div class="foot"><button class="btn ${m.prio.includes(d.k)?"ghost":"gold"}" data-msprio="${d.k}">${m.prio.includes(d.k)?"Tirar das prioridades":"Marcar como prioridade"}</button>
+      <button class="btn ghost" data-msclear="${d.k}">Apagar respostas desta área</button><button class="btn ghost" data-msclose>Pronto</button></div></div>`;
+  el.scrollTop=first?0:scroll;
+}
+
+/* ================= Percurso ANJO de 90 dias ================= */
+let jset=null, jrev=null;
+const J=()=>S.journey;
+const jDay=()=>Math.max(1,dayOf(J().start,TODAY));
+const jWeek=()=>Math.floor((Math.min(90,jDay())-1)/7);
+const areaName=k=>dimOf(k)?dimOf(k).n:k;
+function goalLine(g){
+  const doneToday=!!(g.log&&g.log[TODAY]), p=g.p&&byId(g.p)&&allowed(byId(g.p))?byId(g.p):null;
+  let right, sub;
+  if(g.kind==="once"){ const ok=g.log&&Object.keys(g.log).length; right=`<button class="check ${ok?"ok":""}" data-jdone="${g.id}" aria-label="${ok?"Feito":"Marcar como feito"}">${ok?"✓":""}</button>`; sub=ok?"Feito":"Tarefa única"; }
+  else if(g.kind==="daily"){ right=`<button class="check ${doneToday?"ok":""}" data-jdone="${g.id}" aria-label="${doneToday?"Feito hoje":"Marcar como feito hoje"}">${doneToday?"✓":""}</button>`; sub="Todo dia"; }
+  else { const c=weekCount(g,J().start,jWeek()); right=`<button class="check ${doneToday?"ok":""}" data-jdone="${g.id}" aria-label="${doneToday?"Feito hoje":"Fiz hoje"}">${doneToday?"✓":""}</button>`; sub=`${c} de ${g.target} ${g.unit} nesta semana`; }
+  return `<div class="jgoal"><div><b>${esc(g.t)}</b><small>${esc(areaName(g.area))} · ${sub}</small>${p&&!doneToday&&g.kind!=="once"?`<button class="link" style="margin-top:4px" data-start="${p.id}">Fazer agora: ${esc(p.name)} · ${fmt(p.sec)}</button>`:""}</div>${right}</div>`;
+}
+function reviewDue(){ if(!J()||J().ended) return null; const w=jWeek(); const done=Object.keys(J().reviews||{}).map(Number); for(let i=0;i<w;i++) if(!done.includes(i)) return i; return null; }
+function journeyTodayCard(){
+  if(!J()||J().ended) return "";
+  const day=jDay();
+  if(day>90) return `<div class="card" style="margin-top:10px"><div class="eyebrow">Percurso ANJO</div><b style="font-family:var(--f-display);font-size:16px">Você completou os 90 dias</b><p class="meta" style="margin-top:4px">Veja o resumo da sua evolução e escolha os próximos passos.</p><button class="btn gold small" style="margin-top:10px" data-jsummary>Ver meu resumo</button></div>`;
+  const f=faseOf(day), rv=reviewDue();
+  return `<div class="card" style="margin-top:10px"><div class="between"><div><div class="eyebrow">Percurso ANJO · fase ${f.n}</div><b style="font-family:var(--f-display);font-size:16px">Dia ${day} de 90</b></div><button class="link" data-go="percurso">Ver</button></div>
+    <div class="progress" style="margin:8px 0 4px"><i style="width:${day/90*100}%"></i></div>
+    ${rv!=null?`<button class="nowbtn" style="margin:8px 0" data-jreview="${rv}"><span class="studyic" aria-hidden="true">✎</span><span><b>Como foi a semana ${rv+1}?</b><span class="meta">2 minutos para ajustar o seu percurso</span></span><span class="arrow">›</span></button>`:""}
+    ${J().goals.map(goalLine).join("")}</div>`;
+}
+function percursoHTML(){
+  if(!J()) return `<div class="stack"><div class="hero"><div class="eyebrow">Percurso ANJO</div><h2 style="font-size:21px;margin:6px 0">90 dias para cuidar do que importa para você</h2>
+      <p class="meta">Você escolhe até 3 prioridades e objetivos pequenos. O ANJO acompanha, pergunta como foi a semana e ajusta o plano. Sem cobrança e sem culpa.</p></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Como funciona</div>${FASES.map(f=>`<div class="insight"><i></i><span><b>${f.n}</b> · dias ${f.de} a ${f.ate}. ${esc(f.d)}</span></div>`).join("")}</div>
+    ${knownCount()<3?`<p class="meta">Dica: responda algumas perguntas do seu mapa de saúde antes. O ANJO sugere prioridades a partir delas.</p>`:""}
+    <button class="btn gold block" data-jsetup>Criar meu percurso</button></div>`;
+  const j=J(), day=Math.min(90,jDay()), f=faseOf(day), weeks=jWeek()+1;
+  const wk=[...Array(weeks).keys()].map(w=>{ const a=j.goals.length?j.goals.reduce((s,g)=>s+adherence(g,j.start,TODAY,w),0)/j.goals.length:0; return Math.round(a*100); });
+  const W=320,H=120,bw=Math.min(26,(W-30)/Math.max(weeks,1)-6);
+  let ch=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Adesão por semana">`;
+  wk.forEach((v,i)=>{ const x=20+i*(bw+6), h=(v/100)*(H-36); ch+=`<rect x="${x}" y="${H-20-h}" width="${bw}" height="${Math.max(2,h)}" rx="5" fill="${i===weeks-1?"#D6A558":"#3E7752"}"/><text x="${x+bw/2}" y="${H-6}" text-anchor="middle">S${i+1}</text>${v?`<text x="${x+bw/2}" y="${H-24-h}" text-anchor="middle">${v}%</text>`:""}`; });
+  ch+=`</svg>`;
+  const alerts=proAlerts(mapA());
+  return `<div class="stack">
+    <div class="hero"><div class="eyebrow">Fase ${f.n} · dia ${day} de 90</div><p class="meta" style="margin-top:4px">${esc(f.d)}</p>
+      <div class="phases">${FASES.map(x=>`<span class="${day>=x.de?"on":""}">${x.n}</span>`).join("")}</div><div class="progress"><i style="width:${day/90*100}%"></i></div></div>
+    ${reviewDue()!=null?`<button class="nowbtn" data-jreview="${reviewDue()}"><span class="studyic" aria-hidden="true">✎</span><span><b>Como foi a semana ${reviewDue()+1}?</b><span class="meta">Responda e o ANJO ajusta o percurso</span></span><span class="arrow">›</span></button>`:""}
+    <div class="card"><div class="eyebrow" style="margin-bottom:4px">Hoje</div>${j.goals.map(goalLine).join("")}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Seus objetivos até agora</div>${j.goals.map(g=>{ const a=Math.round(adherence(g,j.start,TODAY)*100); return `<div class="dimrow" style="grid-template-columns:1fr auto"><div><b>${esc(g.t)}</b><div class="bar"><i style="width:${a}%;background:var(--forest)"></i></div></div><span class="dur">${g.kind==="once"?(a?"feito":"a fazer"):a+"%"}</span></div>`; }).join("")}</div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Semana a semana</div>${ch}<p class="note">Porcentagem do que você combinou consigo mesmo. Semana em andamento em dourado.</p></div>
+    ${alerts.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Vale procurar um profissional</div>${alerts.map(a=>`<div class="insight"><i></i><span>${esc(a.t)}</span></div>`).join("")}</div>`:""}
+    <div class="row"><button class="btn gold" data-jsummary>Ver resumo</button><button class="btn ghost" data-jsetup>Mudar objetivos</button><button class="btn ghost" data-jend>Encerrar percurso</button></div>
+    ${jEndConfirm?`<div class="card"><p>Encerrar o percurso agora? O histórico fica guardado no resumo.</p><div class="row" style="margin-top:8px"><button class="btn small" style="background:var(--danger);color:#fff" data-jendyes>Encerrar</button><button class="btn ghost small" data-jendno>Continuar</button></div></div>`:""}
+  </div>`;
+}
+let jEndConfirm=false;
+function suggestedAreas(){ const m=mapA(); const att=MAPA.filter(d=>mapStatus(d,m)==="atencao").map(d=>d.k); const objMap={"Dormir melhor":"sono","Mexer mais o corpo":"movimento","Comer melhor":"alimentacao","Menos estresse":"emocional","Cuidar de uma condição de saúde":"fisica","Mais tempo com pessoas":"social","Mais contato com a natureza":"ambiente"}; const fromObj=(m.a.obj_lista||[]).map(x=>objMap[x]).filter(Boolean); return [...new Set(m.prio.concat(fromObj,att))].filter(k=>AREAS.includes(k)); }
+function drawJSet(){
+  let el=$("#phone .overlay.jsov"); if(!jset){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement("div"); el.className="overlay light jsov"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Criar percurso"); $("#phone").appendChild(el); }
+  const sug=suggestedAreas(), s=jset;
+  const top=`<div class="ov-top"><span class="eyebrow">Percurso ANJO · passo ${s.step+1} de 3</span><button class="iconbtn" data-jsclose aria-label="Fechar">${icon("x")}</button></div><div class="prog">${[0,1,2].map(i=>`<i class="${i<=s.step?"on":""}"></i>`).join("")}</div>`;
+  let h="";
+  if(s.step===0) h=`<h1 style="font-size:23px">O que você quer cuidar nos próximos 90 dias?</h1><p class="meta">Escolha até 3. Menos é mais: dá para mudar depois.</p>
+    <div class="opts">${AREAS.map(k=>`<button class="opt" data-jarea="${k}" aria-pressed="${s.areas.includes(k)}">${esc(areaName(k))}${sug.includes(k)?` <span class="badge">sugerido</span>`:""}</button>`).join("")}</div>
+    <div class="foot"><button class="btn gold" data-jnext ${s.areas.length?"":"disabled"}>Continuar</button></div>`;
+  if(s.step===1) h=`<h1 style="font-size:23px">Escolha um objetivo pequeno para cada área</h1><p class="meta">Objetivos realistas funcionam melhor do que grandes promessas.</p>
+    ${s.areas.map(k=>`<div class="field"><label>${esc(areaName(k))}</label><div class="opts">${OBJETIVOS[k].map(o=>`<button class="opt" data-jpick="${k}|${o.id}" aria-pressed="${s.picks[k]===o.id}">${esc(o.t)}<br><small class="meta">${o.kind==="daily"?"Todo dia":o.kind==="once"?"Uma vez":`${o.target} ${o.unit} por semana`}</small></button>`).join("")}
+      <button class="opt" data-jpick="${k}|own" aria-pressed="${s.picks[k]==="own"}">Escrever o meu</button></div>
+      ${s.picks[k]==="own"?`<input type="text" id="jown-${k}" placeholder="Ex.: subir de escada em vez de elevador" value="${esc(s.own[k]||"")}" style="margin-top:8px"><small class="meta">Vai valer 3 vezes por semana; dá para ajustar na reflexão semanal.</small>`:""}</div>`).join("")}
+    <div class="foot"><button class="btn gold" data-jnext ${s.areas.every(k=>s.picks[k])?"":"disabled"}>Continuar</button><button class="btn ghost" data-jback>Voltar</button></div>`;
+  if(s.step===2){ const goals=buildGoals(); h=`<h1 style="font-size:23px">Seu percurso</h1><p class="meta">Começa hoje e vai até ${fmtDate(addDays(TODAY,89))}. Toda semana o ANJO pergunta como foi e ajusta com você.</p>
+    <div class="card">${goals.map(g=>`<div class="insight"><i></i><span><b>${esc(g.t)}</b><br><small class="meta">${esc(areaName(g.area))} · ${g.kind==="daily"?"todo dia":g.kind==="once"?"uma vez":`${g.target} ${g.unit} por semana`}</small></span></div>`).join("")}</div>
+    ${goals.filter(g=>OBJETIVOS[g.area]&&(OBJETIVOS[g.area].find(o=>o.id===g.id)||{}).tip).map(g=>`<p class="meta">Dica: ${esc(OBJETIVOS[g.area].find(o=>o.id===g.id).tip)}</p>`).join("")}
+    <div class="foot"><button class="btn gold" data-jstart>Começar o percurso</button><button class="btn ghost" data-jback>Voltar</button></div>`; }
+  el.innerHTML=`<div class="scw">${top}${h}</div>`; el.scrollTop=0;
+}
+function readOwn(){ (jset.areas||[]).forEach(k=>{ const e=$("#jown-"+k); if(e) jset.own[k]=e.value.trim(); }); }
+function buildGoals(){ return jset.areas.map(k=>{ const id=jset.picks[k]; if(id==="own") return {id:"own_"+k,area:k,t:jset.own[k]||"Meu objetivo",kind:"weekly",target:3,unit:"vezes",log:{}}; const o=OBJETIVOS[k].find(x=>x.id===id); return Object.assign({area:k,log:{}},JSON.parse(JSON.stringify(o))); }); }
+function drawJRev(){
+  let el=$("#phone .overlay.jrov"); if(!jrev){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement("div"); el.className="overlay light jrov"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Reflexão da semana"); $("#phone").appendChild(el); }
+  const j=J(), w=jrev.w, sc=el.scrollTop;
+  el.innerHTML=`<div class="scw"><div class="ov-top"><span class="eyebrow">Reflexão da semana ${w+1}</span><button class="iconbtn" data-jrclose aria-label="Fechar">${icon("x")}</button></div>
+    <h1 style="font-size:23px">Como foi a sua semana?</h1><p class="meta">Sem cobrança: o que importa é entender o que ajuda você.</p>
+    <div class="card">${j.goals.map(g=>{ const a=Math.round(adherence(g,j.start,TODAY,w)*100); return `<div class="between" style="padding:6px 0"><span>${esc(g.t)}</span><b class="dur">${g.kind==="once"?(a?"feito":"—"):a+"%"}</b></div>`; }).join("")}</div>
+    <div class="field"><label>O que ajudou?</label><div class="chips">${AJUDOU.map(x=>`<button class="chip" data-jrh="${esc(x)}" aria-pressed="${jrev.h.includes(x)}">${esc(x)}</button>`).join("")}</div></div>
+    <div class="field"><label>O que atrapalhou?</label><div class="chips">${ATRAPALHOU.map(x=>`<button class="chip" data-jrx="${esc(x)}" aria-pressed="${jrev.x.includes(x)}">${esc(x)}</button>`).join("")}</div></div>
+    <div class="field"><label for="jrText">Quer anotar algo? (opcional)</label><textarea id="jrText" rows="2" style="min-height:60px">${esc(jrev.t||"")}</textarea></div>
+    <div class="field"><label>Ajustes para a próxima semana</label>${j.goals.filter(g=>g.kind!=="once").map(g=>{ const a=adherence(g,j.start,TODAY,w), sug=a<.5?"leve":a>=1?"subir":"manter", cur=jrev.adj[g.id]||sug;
+      return `<div class="card" style="padding:12px"><b style="font-size:14px">${esc(g.t)}</b><p class="meta" style="margin:2px 0 8px">${a<.5?"Foi difícil esta semana. Que tal deixar mais leve?":a>=1?"Você cumpriu tudo. Quer subir um degrau?":"Está no caminho. Manter assim?"}</p>
+        <div class="chips">${[["leve","Deixar mais leve"],["manter","Manter"],["subir","Subir um degrau"]].map(([v,l])=>`<button class="chip" data-jradj="${g.id}|${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</div></div>`; }).join("")||`<p class="meta">Sem ajustes nesta semana.</p>`}</div>
+    <div class="foot"><button class="btn gold" data-jrsave>Salvar reflexão</button></div></div>`;
+  el.scrollTop=sc;
+}
+function applyAdj(g,v){
+  if(v==="leve"){ if(g.kind==="daily"){ g.kind="weekly"; g.target=4; g.unit="dias"; } else g.target=Math.max(1,g.target-1); }
+  if(v==="subir"){ if(g.kind==="weekly"&&g.target<7) g.target++; }
+}
+function summaryText(){
+  const j=J(), day=Math.min(90,jDay()), revs=Object.values(j.reviews||{});
+  const count=arr=>{ const c={}; arr.flat().forEach(x=>c[x]=(c[x]||0)+1); return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]); };
+  const startScan=S.scans.filter(s=>s.date&&s.date<=j.start).slice(-1)[0]||S.scans[0], endScan=S.scans.filter(s=>s.date&&s.date>j.start).slice(-1)[0];
+  const lines=[`Percurso ANJO · ${fmtDate(j.start)} a ${fmtDate(addDays(j.start,Math.min(89,day-1)))} · ${day} de 90 dias`];
+  j.goals.forEach(g=>{ const a=Math.round(adherence(g,j.start,TODAY)*100); lines.push(`• ${g.t}: ${g.kind==="once"?(a?"feito":"ainda não feito"):a+"% do combinado"}`); });
+  const h=count(revs.map(r=>r.h||[])), x=count(revs.map(r=>r.x||[]));
+  if(h.length) lines.push(`O que mais ajudou: ${h.join(", ").toLowerCase()}.`);
+  if(x.length) lines.push(`O que mais atrapalhou: ${x.join(", ").toLowerCase()}.`);
+  if(startScan&&endScan) lines.push(`Bem-estar (WHO-5): ${startScan.who} → ${endScan.who}. Estresse (PSS-4): ${startScan.pss} → ${endScan.pss}.`);
+  const al=proAlerts(mapA()); if(al.length) lines.push("Para conversar com um profissional: "+al.map(a=>a.t.split(".")[0].toLowerCase()).join("; ")+".");
+  lines.push("Informações relatadas pela própria pessoa no app ANJO. Não são diagnóstico nem comprovam efeito clínico.");
+  return lines;
+}
+function drawJSum(open){
+  let el=$("#phone .overlay.jsum"); if(!open){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement("div"); el.className="overlay light jsum"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","Resumo do percurso"); $("#phone").appendChild(el); }
+  const L=summaryText(), j=J();
+  const next=j.goals.filter(g=>g.kind!=="once").map(g=>{ const a=adherence(g,j.start,TODAY); return a>=.7?`Manter: ${g.t.toLowerCase()}. Já virou parte da sua rotina.`:a<.4?`Recomeçar mais leve: ${g.t.toLowerCase()}, com uma meta menor.`:`Continuar: ${g.t.toLowerCase()}, no seu ritmo.`; });
+  el.innerHTML=`<div class="scw"><div class="ov-top"><span class="eyebrow">Resumo da sua evolução</span><button class="iconbtn" data-jsumclose aria-label="Fechar">${icon("x")}</button></div>
+    <h1 style="font-size:23px">${Math.min(90,jDay())>=90?"Você completou o percurso":"Seu percurso até agora"}</h1>
+    <div class="card">${L.slice(0,-1).map((l,i)=>`<p style="margin:${i?6:0}px 0 0;${i?"":"font-weight:800"}">${esc(l)}</p>`).join("")}</div>
+    ${next.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Próximos passos</div>${next.map(n=>`<div class="insight"><i></i><span>${esc(n)}</span></div>`).join("")}</div>`:""}
+    <p class="note">${esc(L[L.length-1])}</p>
+    <div class="foot"><button class="btn gold" data-jcopy>Copiar resumo para levar à consulta</button>${Math.min(90,jDay())>=90?`<button class="btn green" data-jsetup>Começar um novo percurso</button>`:""}<button class="btn ghost" data-jsumclose>Fechar</button></div></div>`;
+}
+function journeyAuto(pid){ if(!J()||J().ended) return; J().goals.forEach(g=>{ if(g.p===pid&&g.kind!=="once"){ g.log=g.log||{}; g.log[TODAY]=true; } }); }
+
 /* ================= Editor do plano ================= */
 let pe=null, confirmPinOff=false;
 const pracOptions=sel=>Object.keys(SIZE).map(sz=>`<optgroup label="${SIZE[sz].n}">${P.filter(p=>p.size===sz&&allowed(p)).map(p=>`<option value="${p.id}" ${p.id===sel?"selected":""}>${esc(p.name)} · ${fmt(p.sec)}</option>`).join("")}</optgroup>`).join("");
@@ -831,7 +1007,7 @@ function drawPause(light){
 function finishPause(){
   const p=pause.p; S.seeds+=SIZE[p.size].seeds; S.done++; S.todayDone.push(p.id); S.refusals=0;
   const st=S.stats[p.id]||{s:0,a:0}; st.a++; if(st.s<st.a) st.s=st.a; S.stats[p.id]=st;
-  const dr=dayRec(); dr.p++; (dr.ids=dr.ids||[]).push(p.id); if(pause.first) S.onboarded=true;
+  const dr=dayRec(); dr.p++; (dr.ids=dr.ids||[]).push(p.id); journeyAuto(p.id); if(pause.first) S.onboarded=true;
   save(); clearInterval(tick); Voice.speak(`Muito bem. Você ganhou ${SIZE[p.size].seeds} ${SIZE[p.size].seeds>1?"sementes":"semente"}.`); Music.stop(); Music.chime();
   pause.phase="done"; pause.running=false; drawPause();
 }
@@ -945,12 +1121,61 @@ function renderNotif(){
 /* ================= eventos ================= */
 document.addEventListener("change",e=>{ const t=e.target;
   if(t.dataset&&t.dataset.pet&&t.value) planSet(t.dataset.pet,{t:t.value});
-  if(t.dataset&&t.dataset.pep) planSet(t.dataset.pep,{id:t.value}); });
+  if(t.dataset&&t.dataset.pep) planSet(t.dataset.pep,{id:t.value});
+  if(t.dataset&&t.dataset.mstext){ const m=mapA(); m.a[t.dataset.mstext]=t.value.trim()||undefined; if(msOpen==="sintomas") checkUrgent(t.value); save(); }
+  if(t.dataset&&t.dataset.mscons){ const m=mapA(), k=t.dataset.mscons; m.consent[k]=t.checked; if(!t.checked) dimOf(k).qs.forEach(q=>{ delete m.a[q.id]; }); save(); drawMapSheet(); } });
 document.addEventListener("keydown",e=>{ const g=e.target.closest&&e.target.closest("g[data-reg]"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); g.dispatchEvent(new MouseEvent("click",{bubbles:true})); } });
 document.addEventListener("click",e=>{
   const rg=e.target.closest("[data-reg]"); if(rg&&scan&&scan.i===5){ const k=rg.dataset.reg, v=scan.a.pain[k]||0; scan.a.pain[k]=v>=9?0:v+3; drawScan(); return; }
   const t=e.target.closest("button"); if(!t) return; const d=t.dataset;
   if(d.scan!==undefined){ openScan(); return; }
+  // ---- mapa: pergunta do dia
+  if(d.mqconsent){ const m=mapA(), nx=nextMapQuestion(m); if(nx) m.consent[nx.dim.k]=d.mqconsent==="1"; mapAnswered(); renderHoje(); return; }
+  if(d.mqa){ const [qid,v]=d.mqa.split("|"); mapA().a[qid]=v; mapAnswered(); renderHoje(); toast("Obrigado. Isso fica só neste aparelho."); return; }
+  if(d.mqm){ const v=d.mqm.split("|")[1]; if(/^(Nenhuma dessas|Ainda não sei)$/.test(v)) mqSel=mqSel.includes(v)?[]:[v]; else { mqSel=mqSel.filter(x=>!/^(Nenhuma dessas|Ainda não sei)$/.test(x)); mqSel=mqSel.includes(v)?mqSel.filter(x=>x!==v):mqSel.concat(v); } renderHoje(); return; }
+  if(d.mqsave!==undefined){ const m=mapA(), nx=nextMapQuestion(m); if(!nx||!nx.q) return; const q=nx.q;
+    if(q.text){ const v=($("#mqText")||{}).value||""; if(!v.trim()){ toast("Escreva ou toque em “Prefiro não responder”"); return; } m.a[q.id]=v.trim(); if(nx.dim.k==="sintomas") checkUrgent(v); }
+    else { if(!mqSel.length){ toast("Escolha pelo menos uma opção"); return; } m.a[q.id]=mqSel.slice(); }
+    mapAnswered(); renderHoje(); return; }
+  if(d.mqskip!==undefined){ const m=mapA(), nx=nextMapQuestion(m); if(nx&&nx.q) m.skip[nx.q.id]=true; mapAnswered(); renderHoje(); return; }
+  if(d.mqlater!==undefined){ mapA().daily={d:TODAY,n:99}; save(); renderHoje(); return; }
+  // ---- mapa: painel
+  if(d.msopen){ msOpen=d.msopen; drawMapSheet(); return; }
+  if(d.msclose!==undefined){ msOpen=null; drawMapSheet(); render(); return; }
+  if(d.msa){ const [qid,v]=d.msa.split("|"), m=mapA(), q=dimOf(msOpen).qs.find(x=>x.id===qid);
+    if(q.multi){ let cur=m.a[qid]||[]; if(/^(Nenhuma dessas|Ainda não sei)$/.test(v)) cur=cur.includes(v)?[]:[v]; else { cur=cur.filter(x=>!/^(Nenhuma dessas|Ainda não sei)$/.test(x)); cur=cur.includes(v)?cur.filter(x=>x!==v):cur.concat(v); } m.a[qid]=cur; }
+    else m.a[qid]=m.a[qid]===v?undefined:v;
+    save(); drawMapSheet(); return; }
+  if(d.msprio){ const m=mapA(); m.prio=m.prio.includes(d.msprio)?m.prio.filter(x=>x!==d.msprio):m.prio.concat(d.msprio); save(); drawMapSheet(); return; }
+  if(d.msclear){ const m=mapA(), dim=dimOf(d.msclear); dim.qs.forEach(q=>{ delete m.a[q.id]; delete m.skip[q.id]; }); if(dim.sens) delete m.consent[dim.k]; save(); drawMapSheet(); toast("Respostas apagadas"); return; }
+  // ---- percurso: criar e ajustar
+  if(d.jsetup!==undefined){ const j=J(); jset={step:0,areas:[],picks:{},own:{}}; if(j&&!j.ended){ j.goals.forEach(g=>{ jset.areas.push(g.area); jset.picks[g.area]=g.id.startsWith("own_")?"own":g.id; if(g.id.startsWith("own_")) jset.own[g.area]=g.t; }); } drawJSum(false); drawJSet(); return; }
+  if(d.jsclose!==undefined){ jset=null; drawJSet(); return; }
+  if(d.jarea){ const k=d.jarea; if(jset.areas.includes(k)) jset.areas=jset.areas.filter(x=>x!==k); else if(jset.areas.length>=3){ toast("Escolha no máximo 3 por enquanto"); return; } else jset.areas.push(k); drawJSet(); return; }
+  if(d.jpick){ readOwn(); const [k,id]=d.jpick.split("|"); jset.picks[k]=id; drawJSet(); return; }
+  if(d.jnext!==undefined){ readOwn(); jset.step++; drawJSet(); return; }
+  if(d.jback!==undefined){ readOwn(); jset.step--; drawJSet(); return; }
+  if(d.jstart!==undefined){ readOwn(); const goals=buildGoals(), old=J();
+    if(old&&!old.ended){ goals.forEach(g=>{ const prev=old.goals.find(x=>x.id===g.id); if(prev) g.log=prev.log; }); old.goals=goals; }
+    else S.journey={start:TODAY,goals,reviews:{}};
+    jset=null; drawJSet(); save(); tab="arvore"; sub="percurso"; render(); $("#scr").scrollTop=0; toast(old&&!old.ended?"Objetivos atualizados":"Seu percurso começou hoje"); return; }
+  if(d.jdone){ const g=J().goals.find(x=>x.id===d.jdone); g.log=g.log||{};
+    if(g.kind==="once"){ if(Object.keys(g.log).length) g.log={}; else g.log[TODAY]=true; } else { if(g.log[TODAY]) delete g.log[TODAY]; else g.log[TODAY]=true; }
+    save(); const sc=$("#scr").scrollTop; render(); $("#scr").scrollTop=sc; return; }
+  if(d.jreview){ jrev={w:+d.jreview,h:[],x:[],t:"",adj:{}}; drawJRev(); return; }
+  if(d.jrclose!==undefined){ jrev=null; drawJRev(); return; }
+  if(d.jrh||d.jrx){ const tx=$("#jrText"); if(tx) jrev.t=tx.value; const key=d.jrh?"h":"x", v=d.jrh||d.jrx; jrev[key]=jrev[key].includes(v)?jrev[key].filter(x=>x!==v):jrev[key].concat(v); drawJRev(); return; }
+  if(d.jradj){ const tx=$("#jrText"); if(tx) jrev.t=tx.value; const [gid,v]=d.jradj.split("|"); jrev.adj[gid]=v; drawJRev(); return; }
+  if(d.jrsave!==undefined){ const tx=$("#jrText"); if(tx) jrev.t=tx.value; const j=J(), w=jrev.w;
+    j.goals.filter(g=>g.kind!=="once").forEach(g=>{ const a=adherence(g,j.start,TODAY,w); g.tw=g.tw||{}; for(let i=0;i<=w;i++) if(g.tw[i]==null) g.tw[i]=g.kind==="daily"?"daily":g.target; applyAdj(g,jrev.adj[g.id]||(a<.5?"leve":a>=1?"subir":"manter")); });
+    j.reviews=j.reviews||{}; j.reviews[w]={h:jrev.h,x:jrev.x,t:jrev.t,adj:jrev.adj,date:TODAY};
+    jrev=null; drawJRev(); save(); render(); toast("Reflexão salva. Percurso ajustado."); return; }
+  if(d.jsummary!==undefined){ drawJSum(true); return; }
+  if(d.jsumclose!==undefined){ drawJSum(false); return; }
+  if(d.jcopy!==undefined){ const txt=summaryText().join("\n"); try{ navigator.clipboard.writeText(txt).then(()=>toast("Resumo copiado"),()=>toast("Não deu para copiar neste navegador")); }catch(e){ toast("Não deu para copiar neste navegador"); } return; }
+  if(d.jend!==undefined){ jEndConfirm=true; renderArvore(); return; }
+  if(d.jendno!==undefined){ jEndConfirm=false; renderArvore(); return; }
+  if(d.jendyes!==undefined){ J().ended=TODAY; jEndConfirm=false; save(); renderArvore(); toast("Percurso encerrado. O resumo continua disponível."); return; }
   if(d.ckq){ openCk(); ck.a.humor=+d.ckq; ck.i=1; drawCk(); return; }
   if(d.fullplan!==undefined){ fullPlan=!fullPlan; renderHoje(); return; }
   if(d.askq){ tab="conversa"; render(); send(d.askq); return; }
@@ -1000,7 +1225,7 @@ document.addEventListener("click",e=>{
   if(d.trailstart!==undefined){ startTrail(); return; }
   if(d.trailback!==undefined){ scan.i=9; drawScan(); return; }
   if(d.tab){ if(d.tab!=="perfil"&&tab==="perfil") readProfile(); if(tab==="nutri"&&nutEdit) readFoodForm(), save(); tab=d.tab; confirmDel=false; render(); $("#scr").scrollTop=0; return; }
-  if(d.go){ if(d.go==="progresso"||d.go==="raiox"||d.go==="arvore"){tab="arvore";sub=d.go;} else tab=d.go; render(); $("#scr").scrollTop=0; return; }
+  if(d.go){ if(["progresso","raiox","arvore","percurso","mapa"].includes(d.go)){tab="arvore";sub=d.go;} else tab=d.go; render(); $("#scr").scrollTop=0; return; }
   if(d.start){ startPause(d.start,d.first!==undefined); return; }
   if(d.begin!==undefined){ beginRun(); return; }
   if(d.now!==undefined){ const t0=S.today; const m={n:"Pedido agora",t:nowT,size:t0&&t0.energia==="baixa"?"micro":"curta",fav:t0&&t0.tensao==="alta"?"resp":"corpo"};
