@@ -1,6 +1,6 @@
 // Service worker do ANJO: guarda o app para funcionar sem internet e abre o app pelos lembretes.
 // Ao publicar uma nova versão, aumente o número abaixo para os aparelhos baixarem a atualização.
-const CACHE = "anjo-v7";
+const CACHE = "anjo-v8";
 const SHELL = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const SHELL = [
   "./js/core/util.js",
   "./js/core/midia.js",
   "./js/core/armazenamento.js",
+  "./js/core/lembretes.js",
   "./js/data/conteudo.js",
   "./js/ui/arte.js",
   "./js/saude/raiox.js",
@@ -31,7 +32,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== "anjo-agenda").map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -92,4 +93,27 @@ self.addEventListener("notificationclick", (e) => {
       return self.clients.openWindow("./?a=" + encodeURIComponent(a));
     })
   );
+});
+
+// Aviso vindo do servidor (com o app fechado). O servidor não manda texto nenhum:
+// o próprio aparelho olha a agenda que o app guardou e escolhe o lembrete daquele horário.
+self.addEventListener("push", (e) => {
+  e.waitUntil((async () => {
+    let it = null;
+    try {
+      const c = await caches.open("anjo-agenda");
+      const r = await c.match(new URL("agenda.json", self.registration.scope).href);
+      if (r) {
+        const ag = await r.json(), now = new Date(), m = now.getHours() * 60 + now.getMinutes();
+        const toMin = (t) => { const [h, mm] = t.split(":").map(Number); return h * 60 + mm; };
+        it = (ag.items || []).map((x) => Object.assign({}, x, { d: Math.abs(toMin(x.t) - m) })).filter((x) => x.d <= 3).sort((a, b) => a.d - b.d)[0] || null;
+      }
+    } catch (err) {}
+    const title = it ? (it.kind === "ck" ? "Como você está hoje?" : it.kind === "convite" ? "Um convite do ANJO" : "Hora da sua pausa") : "ANJO";
+    const body = it ? (it.kind === "ck" ? "Seu check-in leva 30 segundos." : it.label) : "Você tem um lembrete do ANJO.";
+    await self.registration.showNotification(title, {
+      body, icon: "icons/icon-192.png", badge: "icons/icon-192.png",
+      tag: "anjo-" + (it ? it.id : "lembrete"), data: { action: it ? it.id : "" },
+    });
+  })());
 });

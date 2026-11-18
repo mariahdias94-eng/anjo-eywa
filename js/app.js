@@ -8,6 +8,7 @@ import {analyzeFood} from "./saude/nutricao.js";
 import {MAPA,MAPA_NOTAS,URGENCIA,STATUS,mapStatus,nextMapQuestion,proAlerts} from "./saude/mapa.js";
 import {OBJETIVOS,AREAS,FASES,AJUDOU,ATRAPALHOU,dayOf,faseOf,adherence,weekCount} from "./saude/percurso.js";
 import {createStore} from "./core/armazenamento.js";
+import {pushBlocker,saveAgenda,syncPush,stopPush} from "./core/lembretes.js";
 setMediaSettings(()=>({narr:S.narr,music:S.music}));
 /* ================= utilidades ================= */
 let TODAY=isoDay(new Date());
@@ -38,7 +39,7 @@ let S;
 S=DEFAULT();
 // só salva depois que os dados reais foram carregados (evita sobrescrever com o estado vazio)
 let ready=false, saveT=null;
-function save(){ if(!ready) return; clearTimeout(saveT); saveT=setTimeout(()=>{ store.save(S); },250); }
+function save(){ if(!ready) return; clearTimeout(saveT); saveT=setTimeout(()=>{ store.save(S); },250); schedulePush(); }
 function saveNow(){ clearTimeout(saveT); return ready?store.save(S):Promise.resolve(false); }
 // histórico por dia: pausas, minutos de estudo e humor do check-in
 const dayRec=(d=TODAY)=>(S.days[d]=S.days[d]||{p:0,f:0,h:null});
@@ -594,7 +595,7 @@ function renderPerfil(){
     <div class="card"><div class="eyebrow" style="margin-bottom:4px">Famílias de prática</div>
       ${Object.keys(FAM).map(f=>`<div class="set"><label for="fam-${f}">${FAM[f].n}<small>Dimensão ${FAM[f].d}</small></label><input type="checkbox" class="switch" id="fam-${f}" data-fam="${f}" ${S.fams.includes(f)?"checked":""}></div>`).join("")}</div>
     <div class="card"><div class="eyebrow" style="margin-bottom:4px">Lembretes, aparência e permissões</div>
-      <div class="set"><label for="pNotify">Lembretes no aparelho<small>Avisos das pausas e do check-in com o app em segundo plano</small></label><input type="checkbox" class="switch" id="pNotify" ${S.notify?"checked":""}></div>
+      <div class="set"><label for="pNotify">Lembretes no aparelho<small>${esc(pushStatusText())}</small></label><input type="checkbox" class="switch" id="pNotify" ${S.notify?"checked":""}></div>
       <div class="set"><label for="ckTime">Lembrete do check-in<small>Uma vez por dia</small></label><input type="time" id="ckTime" value="${S.ckTime}" style="width:auto"></div>
       <div class="set"><label for="themeSel">Aparência<small>O modo noturno usa o azul petróleo</small></label><select id="themeSel">${[["auto","Automática"],["light","Clara"],["dark","Noturna"]].map(([v,l])=>`<option value="${v}" ${S.theme===v?"selected":""}>${l}</option>`).join("")}</select></div>
       <div class="set"><label for="pSteps">Passos do celular<small>Chega na versão para as lojas de apps</small></label><input type="checkbox" class="switch" id="pSteps" disabled></div>
@@ -611,7 +612,7 @@ function renderPerfil(){
   </div>`;
   $("#perDay").oninput=e=>{S.perDay=+e.target.value;$("#perDayV").textContent=S.perDay;S.plan=buildPlan();save();};
   $("#quiet").onchange=e=>{S.quietFrom=e.target.value;save();toast("Silêncio a partir das "+S.quietFrom);};
-  $("#pNotify").onchange=e=>{ if(e.target.checked){ requestNotify().then(ok=>{ e.target.checked=ok; }); } else { S.notify=false; save(); } };
+  $("#pNotify").onchange=e=>{ if(e.target.checked){ requestNotify().then(ok=>{ e.target.checked=ok; }); } else { S.notify=false; stopPush(S.pushId); S.pushSig=null; S.pushOk=false; save(); renderPerfil(); } };
   $("#ckTime").onchange=e=>{ if(e.target.value){ S.ckTime=e.target.value; save(); toast("Lembrete do check-in às "+S.ckTime); } };
   $("#themeSel").onchange=e=>{ S.theme=e.target.value; save(); applyTheme(); };
   $("#sNarr").onchange=e=>{S.narr=e.target.checked;save();};
@@ -823,6 +824,38 @@ function drawPlanEdit(){
     <p class="note">Sugestões automáticas respeitam o limite de ${S.perDay} por dia (mude no Perfil). Momentos seus e convites ficam fora do limite.</p>
     <div class="foot"><button class="btn gold" data-peclose>Pronto</button><button class="btn ghost" data-pereset>Voltar ao plano sugerido</button></div></div>`;
   el.scrollTop=first?0:st;
+}
+
+/* ================= Lembretes com o app fechado ================= */
+const randHex=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("");
+// agenda com rótulos (fica no aparelho) e horários em UTC (vão ao servidor, sem rótulos)
+function pushPlan(){
+  const items=[], off=new Date().getTimezoneOffset();
+  (S.plan||[]).forEach(m=>{ if(!m.invite&&toMin(m.t)>=toMin(S.quietFrom)) return; const p=byId(m.id); if(p) items.push({t:m.t,kind:m.invite?"convite":"pausa",label:p.name,id:p.id}); });
+  items.push({t:S.ckTime,kind:"ck",label:"Check-in do dia",id:"ck"});
+  const times=items.map(x=>({h:fromMin(toMin(x.t)+off),k:x.kind,skip:x.kind==="ck"&&S.today?TODAY:null}));
+  return {items,times};
+}
+let pushT=null;
+function schedulePush(){
+  if(!ready||!S.notify||!S.onboarded) return;
+  clearTimeout(pushT);
+  pushT=setTimeout(async()=>{
+    const {items,times}=pushPlan(); await saveAgenda(items);
+    if(pushBlocker()) return;
+    const sig=JSON.stringify(times)+"|"+new Date().getTimezoneOffset();
+    if(sig===S.pushSig&&S.pushDay===TODAY) return;
+    try{ S.pushId=S.pushId||randHex(); const r=await syncPush(S.pushId,times); S.pushOk=!!r.ok; if(r.ok){ S.pushSig=sig; S.pushDay=TODAY; } }catch(e){ S.pushOk=false; }
+    store.save(S); if(tab==="perfil"&&!pause) renderPerfil();
+  },1500);
+}
+function pushStatusText(){
+  if(!S.notify) return "Avisos das pausas e do check-in";
+  const b=pushBlocker();
+  if(b==="em-configuracao") return "Chegam com o app aberto ou em segundo plano. Com o app fechado: em configuração.";
+  if(b==="instalar-ios") return "No iPhone, instale o ANJO na tela de início para receber também com o app fechado.";
+  if(b==="navegador") return "Este navegador só avisa com o app aberto ou em segundo plano.";
+  return S.pushOk?"Também chegam com o app fechado e o celular bloqueado.":"Ativando os avisos com o app fechado…";
 }
 
 /* ================= Bloqueio com PIN ================= */

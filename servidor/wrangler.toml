@@ -1,0 +1,17 @@
+name = "anjo-lembretes"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Endereços que podem usar o servidor (o app oficial e a prévia ficam no mesmo endereço do GitHub Pages)
+[vars]
+ALLOWED_ORIGINS = "https://mariahdias94-eng.github.io"
+
+# Confere os lembretes a cada minuto
+[triggers]
+crons = ["* * * * *"]
+
+# Banco de dados com os horários. O database_id é preenchido depois de criar o banco.
+[[d1_databases]]
+binding = "DB"
+database_name = "anjo-lembretes"
+database_id = "PREENCHER"
