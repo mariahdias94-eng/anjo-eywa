@@ -424,3 +424,4 @@ body{background:var(--page-bg)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .blk-h h2{text-shadow:0 1px 8px rgba(2,36,48,.9)}}
 .hello2 p{text-shadow:0 1px 8px rgba(255,251,243,.9)}
 .brand .anjo-logo{width:46px;height:46px;margin:-5px -2px -5px -6px}
+.brand .anjo-logo{width:52px;height:52px;margin:-8px -4px -8px -8px}

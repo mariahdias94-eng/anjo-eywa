@@ -944,7 +944,7 @@ function renderOnb(){
     <ul class="tl" style="width:100%;text-align:left">${S.plan.slice(0,5).map(m=>{const p=byId(m.id);return `<li><time>${m.t}</time><i class="dot"></i><div><b>${esc(p.name)}</b><span>${esc(m.lbl)}</span></div></li>`;}).join("")}</ul>
     <div class="foot"><button class="btn gold" data-onb="next">Perfeito</button><button class="btn ghost" data-planedit>Ajustar o plano</button></div>`; }
   if(onbStep===6) h=`${prog}${anjo(110,0)}<h1>Sua primeira pausa</h1><p>15 segundos, com narração e música, para mostrar como funciona e plantar sua primeira semente.</p>
-    <div class="foot"><button class="btn gold" data-start="mandibula" data-first>Fazer agora</button></div>`;
+    <div class="foot"><button class="btn gold" data-start="mandibula" data-first>Fazer agora</button><button class="btn ghost" data-onbdone>Agora não, ir para o início</button></div>`;
   $("#scr").innerHTML=`<div class="onb">${h}</div>`;
 }
 
@@ -1263,7 +1263,8 @@ document.addEventListener("click",e=>{
   if(d.who){ if(d.who==="start") who5Ans=[null,null,null,null,null]; else { const v=who5Ans.reduce((a,b)=>a+b,0)*4; S.who5.push({w:fmtDate(TODAY),v}); if(S.who5.length>3) S.who5.splice(1,1); who5Ans=null; save(); toast("Resultado salvo: "+v+" pontos"); } renderArvore(); return; }
   if(d.whoq!=null&&d.whov!=null){ who5Ans[+d.whoq]=+d.whov; const sc=$("#scr").scrollTop; renderArvore(); $("#scr").scrollTop=sc; return; }
   if(d.q){ if(/rotina/.test(d.q)){ send(d.q); return; } send(d.q); return; }
-  if(d.onb){ if(d.perm!==undefined) requestNotify(); if(onbStep===1){ const n=$("#oname"); if(n&&n.value.trim()) S.name=n.value.trim(); readProfile(); } if(onbStep===2) readProfile(); if(onbStep===3){ const ks=readHealth(); if(ks.length) toast("Entendi: "+ks.map(k=>SAFETY[k].n.toLowerCase()).join(", ")); } onbStep++; save(); render(); return; }
+  if(d.onbdone!==undefined){ S.onboarded=true; onbStep=-1; tab="hoje"; saveNow(); render(); return; }
+  if(d.onb){ if(d.perm!==undefined) requestNotify(); if(onbStep===1){ const n=$("#oname"); if(n&&n.value.trim()) S.name=n.value.trim(); readProfile(); } if(onbStep===2) readProfile(); if(onbStep===3){ const ks=readHealth(); if(ks.length) toast("Entendi: "+ks.map(k=>SAFETY[k].n.toLowerCase()).join(", ")); } onbStep++; if(onbStep>=6) S.onboarded=true; save(); saveNow(); render(); return; }
   if(d.osafe){ const e=document.querySelector("#hnote"); if(e) S.healthNote=e.value; if(d.osafe==="none"){ S.safety={}; S.healthNone=true; } else { S.safety[d.osafe]=!S.safety[d.osafe]; S.healthNone=false; } save(); renderOnb(); return; }
   if(d.pest){ readProfile(); S.profile.estudo=d.pest; save(); onbStep>=0?renderOnb():renderPerfil(); return; }
   if(d.plug){ readProfile(); S.profile.lugar=d.plug; save(); renderPerfil(); return; }

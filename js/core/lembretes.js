@@ -4,7 +4,7 @@
 // para escrever o texto do aviso.
 
 // Endereço do servidor de lembretes (Cloudflare). Vazio = recurso desligado.
-export const PUSH_URL = "";
+export const PUSH_URL = "https://anjo-lembretes.anjo-eywa.workers.dev";
 
 const b64uToU8 = (s) => {
   s = s.replace(/-/g, "+").replace(/_/g, "/");

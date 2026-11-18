@@ -14,4 +14,4 @@ crons = ["* * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "anjo-lembretes"
-database_id = "PREENCHER"
+database_id = "d52a84eb-1b48-4c74-8c74-3566c8c2c594"
