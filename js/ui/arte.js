@@ -13,7 +13,8 @@ export function angelFigure(withHalo){
    <circle class="core" cx="50" cy="31" r="8.5" fill="url(#aG)"/>
    ${withHalo?`<ellipse cx="50" cy="18" rx="10" ry="3" fill="none" stroke="#E9C27F" stroke-width="2.2"/>`:""}`;
 }
-export function anjoLogo(size){return `<svg class="anjo" width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="Logo do ANJO">${GRAD}${angelFigure(true)}</svg>`;}
+// Logo do ANJO: orbe dourado com anéis de luz (versão provisória, recortada de foto; trocar pelo arquivo original em img/orbe.png)
+export function anjoLogo(size){return `<img class="anjo-logo" src="img/orbe.png" width="${size}" height="${size}" alt="Logo do ANJO" decoding="async">`;}
 export function fig(x,y,pose,c){
   const L=(a,b,c2,d)=>`<path d="M${a} ${b}L${c2} ${d}"/>`;
   let s=`<g stroke="${c}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">`, hx=x, hy=y-72;

@@ -364,7 +364,7 @@ body{padding:0!important;overflow:hidden}
 
 /* tela inicial em blocos */
 .blk-h{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 8px}
-.blk-h h2{font-size:17px}
+.blk-h h2{font-size:17px;text-shadow:0 1px 8px rgba(255,251,243,.9)}
 .hello2{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;margin:2px 0 4px}
 .hello2 p{font-size:15px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
@@ -402,3 +402,25 @@ button.check{background:transparent;cursor:pointer;width:34px;height:34px;paddin
 .phases{display:flex;justify-content:space-between;margin:12px 0 6px;font-size:12px}
 .phases span{opacity:.55}
 .phases span.on{opacity:1;font-weight:800;color:#F1D08F}
+
+/* fundos de céu (provisórios, recortados de foto: trocar pelos originais em img/) */
+:root{
+  --page-bg:linear-gradient(rgba(255,250,240,.30),rgba(255,250,240,.30)),url("../img/fundo-claro.jpg") center/cover no-repeat fixed #F3E9D6;
+  --app-bg:linear-gradient(180deg,rgba(255,251,243,.22) 0%,rgba(255,251,243,.42) 35%,rgba(255,251,243,.58) 100%),url("../img/fundo-claro.jpg") center top/cover no-repeat #FAF2E1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page-bg:linear-gradient(rgba(1,24,32,.45),rgba(1,24,32,.45)),url("../img/fundo-noturno.jpg") center/cover no-repeat fixed #011820;
+  --app-bg:linear-gradient(180deg,rgba(2,36,48,.45) 0%,rgba(2,36,48,.62) 35%,rgba(2,36,48,.74) 100%),url("../img/fundo-noturno.jpg") center top/cover no-repeat #022F40;}}
+:root[data-theme="dark"]{
+  --page-bg:linear-gradient(rgba(1,24,32,.45),rgba(1,24,32,.45)),url("../img/fundo-noturno.jpg") center/cover no-repeat fixed #011820;
+  --app-bg:linear-gradient(180deg,rgba(2,36,48,.45) 0%,rgba(2,36,48,.62) 35%,rgba(2,36,48,.74) 100%),url("../img/fundo-noturno.jpg") center top/cover no-repeat #022F40;}
+body{background:var(--page-bg)}
+.phone{background:var(--app-bg)}
+.anjo-logo{display:block;flex:none;object-fit:contain;filter:drop-shadow(0 0 6px rgba(240,201,122,.45))}
+@media (prefers-reduced-motion: no-preference){.hello2 .anjo-logo,.lockov .anjo-logo{animation:glowpulse 4.5s ease-in-out infinite}}
+@keyframes glowpulse{50%{filter:drop-shadow(0 0 14px rgba(240,201,122,.8))}}
+
+:root[data-theme="dark"] .blk-h h2{text-shadow:0 1px 8px rgba(2,36,48,.9)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .blk-h h2{text-shadow:0 1px 8px rgba(2,36,48,.9)}}
+.hello2 p{text-shadow:0 1px 8px rgba(255,251,243,.9)}
+.brand .anjo-logo{width:46px;height:46px;margin:-5px -2px -5px -6px}
