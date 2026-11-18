@@ -367,21 +367,7 @@ function renderHoje(){
   ${blkH("Aprender")}
   ${dica?`<div class="card"><div class="eyebrow">Dica do dia · ${esc(FAM[dica.fam].n)}</div><h3 style="font-size:16px;margin:4px 0">${esc(dica.name)}</h3><p style="font-size:14px">${esc(dica.why)}</p>
     <button class="btn ghost small" style="margin-top:10px" data-start="${dica.id}">Experimentar · ${fmt(dica.sec)}</button></div>`:""}
-  <button class="nowbtn" style="margin-top:10px" data-go="nutri"><span class="studyic" aria-hidden="true">🍎</span><span><b>Como está sua alimentação?</b><span class="meta">Conte o que come num dia e receba um parecer simples</span></span><span class="arrow">›</span></button>
-
-  ${blkH("Minha rede de cuidado")}
-  <div class="card">
-    <div class="eyebrow" style="margin-bottom:6px">Emergência e apoio</div>
-    ${EMERG.map(([n,l,d])=>`<a class="netrow" href="tel:${n}"><b class="num">${n}</b><span><b>${l}</b><small>${d}</small></span><span class="arrow">Ligar</span></a>`).join("")}
-    <div class="eyebrow" style="margin:14px 0 6px">Meus contatos de cuidado</div>
-    ${(S.network||[]).map((x,i)=>`<div class="netrow"><span class="avatar" style="width:36px;height:36px;font-size:15px">${esc((x.nome||"?")[0])}</span><span><b>${esc(x.nome)}</b><small>${esc(x.tipo)}${x.fone?" · "+esc(x.fone):""}</small></span><span class="row" style="flex-wrap:nowrap;gap:6px">${x.fone?`<a class="btn ghost small" href="tel:${esc(x.fone.replace(/[^\d+]/g,""))}">Ligar</a>`:""}<button class="iconbtn" data-netdel="${i}" aria-label="Remover ${esc(x.nome)}">${icon("x")}</button></span></div>`).join("")||`<p class="meta">Guarde aqui seu médico, sua UBS, um familiar ou quem cuida de você.</p>`}
-    ${addContact?`<div class="stack" style="margin-top:10px"><input type="text" id="netNome" placeholder="Nome, ex.: Dra. Ana ou UBS Centro" aria-label="Nome">
-      <select id="netTipo" aria-label="Tipo">${["Médico ou médica","Unidade de saúde (UBS)","Psicólogo ou psicóloga","Fisioterapeuta","Nutricionista","Familiar","Amigo ou amiga","Outro"].map(t=>`<option>${t}</option>`).join("")}</select>
-      <input type="text" id="netFone" inputmode="tel" placeholder="Telefone (opcional)" aria-label="Telefone">
-      <div class="row"><button class="btn green small" data-netsave>Salvar contato</button><button class="btn ghost small" data-netcancel>Cancelar</button></div></div>`
-     :`<button class="btn ghost small" style="margin-top:10px" data-netadd>Adicionar contato</button>`}
-    <p class="note" style="margin-top:8px">Os contatos ficam só neste aparelho. Ligar não envia nenhum dado seu.</p>
-  </div>`;
+  <button class="nowbtn" style="margin-top:10px" data-go="nutri"><span class="studyic" aria-hidden="true">🍎</span><span><b>Como está sua alimentação?</b><span class="meta">Conte o que come num dia e receba um parecer simples</span></span><span class="arrow">›</span></button>`;
   if(focusing) runFocus();
 }
 let focusTimer=null;
